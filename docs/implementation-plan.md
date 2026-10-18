@@ -84,6 +84,8 @@ Verze **0.2.2** živě ověřila jednorázovou automatickou volbu **Plus4U Acces
 
 ## Etapa 3 Příprava důležité práce
 
+Aktuální navazující práce: [automatická příprava a ranní obnova](briefing-automation.md). Miloš potvrdil 18:00 a 7:00 v pracovní dny, Europe/Prague, a požaduje rovnou dokumenty i schůzky uuManagementKit. Společné čtecí rozšíření Miloš schválil s doplněním `keyTask` a `request`; přesná specifikace i schválení jsou v policies. Nativní implementace a živé piloty jsou navazující podmínkou aktivace. Původní návrh pouze pro Elementary Management nebyl schválený. Rutinní zdrojové čtení, fronta, obnova čtecího párování po MFA a pravidelné předání Aidou mají samostatná kritéria dokončení v navazujícím dokumentu.
+
 - Zprovoznit znalostního agenta, agenta pro schůzky a agenta pro řešení úkolů nad společným kontraktem zadání a výstupu.
 - Portovat relevantní skills, odstranit široké instrukce k ukládání každého nálezu do inboxu a k přímému Git zápisu každým agentem.
 - Přidat kontextové balíčky se zdroji, aktuálností, rozhodnutími a rozpory. Zahrnout i relevantní práci mimo vault, pokud je zdroj zpřístupněný.
@@ -237,3 +239,12 @@ Nasazená 0.2.1 prošla i živým restartem pouze MCP jobu: všechny tři staré
 Miloš po opravě hosta 0.2.1 potvrdil, že Aida vypsala stručný ranní briefing. Společně s úspěšnou živou kalibrací, vytvořením briefingu z ověřeného kalendáře a přímým cloudovým čtením je tím doložený první průchod +4U → Iris Connect → připravený výstup Iris → omezené Iris Local → textová odpověď Aidy na tomto Macu. Plné znění její odpovědi ani přesný čas opakovaného volání nejsou součástí potvrzení; netvrdit samostatnou kontrolu všech vět.
 
 Tento pilot je dokončený. Navazuje pravidelná aktualizace podkladů s řízeným MFA, příprava skutečných zdrojových dokumentů a samostatné ověření hlasového rozhovoru. Pracovní rezervace, rozhodovací zápisy, automatická rotace klíče a migrace na Mini nejsou tímto výsledkem dokončené ani nově spuštěné. Před skutečným ranním použitím obnovit večerní zdroje; po 30 minutách je nástroj výslovně označí jako stale.
+
+
+## Automatizace první přípravy – nasazeno 18. října 2026
+
+Na tomto Macu běží Connect 0.7.1, MCP server 0.3.0 v hostu 0.2.1 a soukromý worker trvalé pracovní fronty. Člověk dokončil nové souhlasy a přihlášení; fronta sama navázala na čekající sběr. Schválené kontrakty ManagementKit meeting/document/keyTask/request prošly živým pilotem. Elementary meeting dál selhává jako schemaMismatch a zůstává konkrétní otevřenou opravou, nikoli povoleným fallbackem.
+
+Obsahová příprava a omezený výstup jsou zapojené: nový briefing pro 19. října obsahuje 14 karet, dvě zpracovaná rozhodnutí s pěti ověřenými citacemi a výslovně označené mezery. Skutečné čtení nového schématu uspělo místně i přes Iris Local. Celkový stav je partial. Trvalá fronta, čekání na MFA bez startu, duplicity, vazba analýzy na balíček a opravy čerstvé publikace jsou synteticky otestované.
+
+Večerní příprava 18:00 a ranní obnova 7:00 Po–Pá jsou uložené aktivní automatizace tohoto chatu; tichý následný běh dokončuje pouze čekající analýzu. Miloš předal potvrzení hlavní Aidy o jediné odpovídající rutině s doručením do jejich chatu od 19. října. První skutečné plánované doručení, obnovení po další MFA a hlasový průchod ještě čekají na provozní ověření. [Runbook a přesný aktuální stav](briefing-runbook.md), [omezení zdrojů](briefing-automation.md). Rotace klíče, oprava Elementary adaptéru, další konektory a zápisy zůstávají samostatné navazující kroky.

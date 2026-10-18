@@ -38,7 +38,7 @@ public struct ReadRequest: Codable {
             if op == .active && (request.dateFrom != nil || request.dateTo != nil) { throw ReadFailure.policyDenied }
             if op != .active { _ = try DateWindow(request: request) }
         } else {
-            guard ["status", "diagnostics.verifyReads", "diagnostics.calendarBoundaries"].contains(request.operation),
+            guard ["status", "diagnostics.verifyReads", "diagnostics.calendarBoundaries", "diagnostics.sources", "sources.prepare"].contains(request.operation),
                   request.dateFrom == nil, request.dateTo == nil, request.fresh == nil else { throw ReadFailure.policyDenied }
         }
         return request

@@ -19,3 +19,16 @@ test('wire supports only schema-checked briefing content and suppresses injected
  message.result.structuredContent.briefing.token='SYNTHETIC_SECRET';
  assert.ok(!JSON.stringify(sanitizeMessage(message)).includes('SYNTHETIC_SECRET'));
 });
+test('preparation evidence and workflow remain bounded and reject secret-bearing or unrelated fields',()=>{
+ const brief=valid();brief.priorities=[{id:'decision',title:'Synthetic decision',due:'2026-10-19T08:00:00Z',why:'Due',nextStep:'Review',decisionNeeded:true}];
+ const card={id:'decision',kind:'decision',readiness:'prepared',context:'Synthetic fact',questions:[],missing:[],nextStep:'Review',
+ evidence:[{sourceURL:'https://uuapp.plus4u.net/uu-managementkit-maing02/'+'a'.repeat(32)+'/document?oid='+'b'.repeat(24),pageId:'c'.repeat(24),quote:'A documented synthetic fact'}]};
+ brief.preparations=[card];brief.workflow={phase:'morning',targetDate:'2026-10-19',state:'partial',updatedAt:'2026-10-18T16:01:00Z'};
+ assert.ok(briefingSchema.safeParse(brief).success);
+ for(const change of [{evidence:[]},{context:'AC1=synthetic-not-real'},{evidence:[{...card.evidence[0],token:'synthetic'}]},{id:'unrelated'},{readiness:'approved'}]){
+  assert.equal(briefingSchema.safeParse({...brief,preparations:[{...card,...change}]}).success,false);
+ }
+ assert.equal(briefingSchema.safeParse({...brief,workflow:{...brief.workflow,token:'synthetic'}}).success,false);
+ const result={jsonrpc:'2.0',id:9,result:{structuredContent:{ok:true,freshness:'current',briefing:{...brief,preparations:[{...card,context:'Bearer synthetic-hidden'}]}}}};
+ assert.ok(!JSON.stringify(sanitizeMessage(result)).includes('synthetic-hidden'));
+});

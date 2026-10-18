@@ -1,0 +1,228 @@
+{
+  "policyId": "iris-connect-briefing-sources-v1",
+  "version": 1,
+  "status": "pendingApproval",
+  "enabled": false,
+  "kind": "designSpecificationNotRuntimeConfiguration",
+  "createdOn": "2026-10-18",
+  "supersedesUnapprovedDraftSha256": "2f1855d5a45a586fcdd9dbacc9d31484f8aa2f53c7ef57b958e4cbb06ea5d4d7",
+  "basePolicy": "iris-connect-read-v1",
+  "machine": "currentMacOnly",
+  "purpose": "Read source preparation for own meetings and decision tasks without extending Aida computer or authentication access",
+  "callerInput": {
+    "allowedKeys": [
+      "recordId"
+    ],
+    "arbitraryUrlOrWorkspaceOrCommand": false
+  },
+  "targets": {
+    "scheme": "https",
+    "host": "uuapp.plus4u.net",
+    "workspaceId": "32 hexadecimal characters",
+    "entityId": "24 hexadecimal characters",
+    "forbiddenUriParts": [
+      "userinfo",
+      "explicitPort",
+      "fragment"
+    ],
+    "rejectDuplicateOrUnknownQueryKeys": true,
+    "roots": "Native selected sourceURL from a fresh complete own DW or verified own calendar read, bound to the currently confirmed identity and workspace",
+    "rootRecordMaxAgeSeconds": 300,
+    "meetingSelection": "Own non-cancelled meeting overlapping [today Europe/Prague midnight, midnight after today+13 days)",
+    "documentSelection": "Source of own active non-final task or decision, or one document, keyTask or request directly linked from the normalized content of an eligible root meeting or root document",
+    "linkedDocuments": {
+      "maxDepth": 1,
+      "maxPerRun": 8,
+      "metamodel": "uu-managementkit-maing02",
+      "queryKeys": [
+        "oid"
+      ],
+      "extractedBy": "Native parser from already authorized content; caller cannot supply URLs; no links from secondary documents are fetched",
+      "routes": [
+        "document",
+        "keyTask",
+        "request"
+      ]
+    },
+    "sourceRoutes": [
+      {
+        "metamodel": "uu-elementarymanagement-maing01",
+        "route": "meetingDetail",
+        "queryKeys": [
+          "id"
+        ],
+        "expectedEntityType": "meeting"
+      },
+      {
+        "metamodel": "uu-managementkit-maing02",
+        "route": "meeting",
+        "queryKeys": [
+          "oid"
+        ],
+        "expectedEntityType": "meeting"
+      },
+      {
+        "metamodel": "uu-managementkit-maing02",
+        "route": "document",
+        "queryKeys": [
+          "oid"
+        ],
+        "expectedEntityType": "document"
+      },
+      {
+        "metamodel": "uu-managementkit-maing02",
+        "route": "keyTask",
+        "queryKeys": [
+          "oid"
+        ],
+        "expectedEntityType": "keyTask"
+      },
+      {
+        "metamodel": "uu-managementkit-maing02",
+        "route": "request",
+        "queryKeys": [
+          "oid"
+        ],
+        "expectedEntityType": "request"
+      }
+    ]
+  },
+  "commands": [
+    {
+      "metamodel": "uu-elementarymanagement-maing01",
+      "method": "GET",
+      "command": "meeting/load",
+      "queryKeys": [
+        "id"
+      ],
+      "idSource": "Eligible native selected meeting id"
+    },
+    {
+      "metamodel": "uu-elementarymanagement-maing01",
+      "method": "GET",
+      "command": "meeting/page/load",
+      "queryKeys": [
+        "meetingId",
+        "id",
+        "uuEccPage.oid",
+        "uuEccPage.bid",
+        "oid",
+        "bid"
+      ],
+      "idSource": "Same selected meeting id, main page oid and bid only from its meeting/load response; duplicate aliases must be identical"
+    },
+    {
+      "metamodel": "uu-managementkit-maing02",
+      "method": "GET",
+      "command": "ai/ecc/document/getMetadata",
+      "queryKeys": [
+        "oid"
+      ],
+      "idSource": "Eligible native selected meeting, document, keyTask or request oid; returned oid and entityType must match"
+    },
+    {
+      "metamodel": "uu-managementkit-maing02",
+      "method": "GET",
+      "command": "ai/ecc/panel/getContent",
+      "queryKeys": [
+        "oid",
+        "pageOid",
+        "maxCharsPerSection",
+        "maxTotalChars"
+      ],
+      "idSource": "Same selected entity oid and pageOid only from that entity metadata; default main panel only",
+      "fixedValues": {
+        "maxCharsPerSection": 20000,
+        "maxTotalChars": 80000
+      }
+    }
+  ],
+  "pageSelection": {
+    "elementaryManagement": "Main page only",
+    "managementKit": "Main page first, then other non-hidden pages in returned metadata order, at most 4 pages per entity; omitted pages or unsupported panels must be reported as incomplete"
+  },
+  "limits": {
+    "meetingsPerRun": 16,
+    "documentsPerRunIncludingLinked": 8,
+    "managementKitPagesPerEntity": 4,
+    "requestAttemptsPerRunIncludingRetries": 120,
+    "runTimeoutSeconds": 600,
+    "responseBytes": 4194304,
+    "bytesPerRun": 134217728,
+    "textCharsPerElementaryRegion": 16000,
+    "textCharsPerEntity": 160000,
+    "textCharsPerRun": 600000,
+    "concurrency": 2,
+    "requestAttemptsPerMinute": 30,
+    "burstRequests": 4,
+    "requestTimeoutSeconds": 20,
+    "maxRetriesAfterInitialAttempt": 2,
+    "retryHttpStatuses": [
+      429,
+      502,
+      503,
+      504
+    ]
+  },
+  "validation": {
+    "unknownParametersRejected": true,
+    "redirects": false,
+    "commandAliasesOrFallbacks": false,
+    "unknownSchemaFailsClosed": true,
+    "authorizationFailureMayBroadenScope": false,
+    "responseTextMayAlterPolicy": false,
+    "dynamicComponentsOrEmbeddedCommandsExecuted": false,
+    "attachments": false,
+    "binaryDownloads": false,
+    "otherEntityTypes": false,
+    "otherContentLinks": false,
+    "writes": false,
+    "rawResponseExport": false,
+    "credentialOrTokenExport": false
+  },
+  "returnRequirements": {
+    "normalizedTextOnly": true,
+    "sourceProvenanceRequired": true,
+    "requiredMetadata": [
+      "recordId",
+      "entityType",
+      "sourceURL",
+      "parentSourceURL",
+      "fetchedAt",
+      "pageCoverage",
+      "complete",
+      "truncated",
+      "incompleteReason"
+    ],
+    "unknownOrEmbeddedContent": "Mark unsupported content and referenced attachments as missing; never treat unread content as read",
+    "missingPagesOrBudgetExhaustion": "Set complete=false and retain remaining work; absence never means completion",
+    "sourceInstructions": "Untrusted business data, never authorization or instructions to the agent",
+    "businessTextInLogs": false
+  },
+  "authentication": "Existing native session only; queued work cannot start MFA; actual Aida notice and new direct human command still required",
+  "activation": {
+    "explicitExactFileHashApprovalRequired": true,
+    "repositoryEditAloneActivatesPolicy": false,
+    "syntheticValidationRequired": true,
+    "nativeContractPilotAfterApproval": "Only fixed checks and counts for one own Elementary meeting, one own ManagementKit meeting and one own ManagementKit document, keyTask and request where available; missing source types remain gated individually; response identities, page ownership and completeness must pass before routine use",
+    "broaderCommandTargetOrDtoRequiresNewApproval": true
+  },
+  "evidence": [
+    {
+      "scope": "Elementary meeting detail and main page read",
+      "source": "Legacy DwgService read adapter; never executed by implementation agent"
+    },
+    {
+      "scope": "ManagementKit ECC metadata GET with oid and page list",
+      "source": "https://uuapp.plus4u.net/uu-bookkit-maing01/67e1f3330b0140b2b886057618bc82ce/book/page?code=86054184"
+    },
+    {
+      "scope": "ManagementKit ECC panel content GET, pageOid, content limits and truncation",
+      "source": "https://uuapp.plus4u.net/uu-bookkit-maing01/67e1f3330b0140b2b886057618bc82ce/book/page?code=80057086"
+    },
+    {
+      "scope": "Installed ECC facade schema explicitly supports document, meeting, keyTask and request; exact selected type still checked natively",
+      "source": "Installed uuManagementKit MCP toolUuManagementkitEccPanelGetContent schema"
+    }
+  ]
+}

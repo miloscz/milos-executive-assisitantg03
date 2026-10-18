@@ -1,27 +1,33 @@
-# První příprava ranního briefingu
+# Příprava a ranní aktualizace briefingu
 
-Lokální Python služba čte pracovní data výhradně přes podepsaný IrisRead. Nemá autentizační kód, přístup ke klíčence, HTTP klienta ani schopnost vyvolat MFA. Neprovádí zápisy do +4U nebo inboxu.
+Iris běží na tomto Macu. Pracovní jádro získává agendu a schválené podklady pouze přes podepsaný IrisRead. Nemá HTTP klienta, autentizační kód, klíčenku ani schopnost vyvolat MFA. Aida čte pouze publikovaný výstup přes Iris Local; nedostává zdrojové snapshoty ani přístup k počítači.
+
+Provozní vstup je `workflow.py`, nikoli původní diagnostický `briefing.py build/refresh`:
 
 ```sh
-python3 services/iris-core/briefing.py refresh --date 2026-10-19
+/usr/bin/python3 -E -s services/iris-core/workflow.py run --phase prepare
+/usr/bin/python3 -E -s services/iris-core/workflow.py run --phase morning
+/usr/bin/python3 -E -s services/iris-core/workflow.py status
 ```
 
-`refresh` načte aktivní DW bez časového filtru a ověřený kalendář zvoleného dne. Dokud kalendářní kontrakt není aktivovaný, briefing použije jen známé bloky z aktivních DW a označí kalendář `activeRecordsOnly`. Takový výsledek neposkytuje potvrzenou dostupnost. `build` vytvoří náhled ze soukromého již načteného aktivního snapshotu bez dalšího síťového čtení.
+Trvalá soukromá fronta ukládá fázi + datum a checkpoint v SQLite. Zámek brání duplicitní práci. Večer míří na příští pracovní den, v pátek na pondělí; ranní běh na dnešek. Příprava vybírá tři vlastní priority a aktuální schůzky z ověřeného kalendáře. Pozvánky ani rezervace se samy nestávají úkoly. Zápisy, rezervace času a schvalování nejsou součástí této služby.
 
-Provozní JSON soubory patří výhradně do ignorovaného `.iris-runtime/`, adresář má práva 0700 a soubory 0600. Jediný publikovaný výstup je `morning-briefing.json`. Zdrojové snapshoty nejsou dostupné procesu MCP. Compiler publikuje nejvýše 24 bloků, tři prioritní položky a osm souběhů; případné zkrácení je označené. Výběr priorit vychází z doloženého typu a vlastního otevřeného stavu, návaznosti na časový blok a termínu v posledním týdnu či cílovém dni. Pozvánky, rezervace, chatové záznamy a neznámé vlastní stavy se automaticky nemění na nové úkoly.
+Při chybějící relaci vznikne skutečná potřeba přístupu, ale jádro smí jen IrisControl status a prepare. Upozornění a nový přímý lidský pokyn řeší hlavní Aida. Soukromý LaunchAgent fronty po dokončeném MFA obnoví existující čtení; nevytváří nové dny a nevolá model. Při neúspěchu místního párování čeká, místo aby použil jiný konektor.
 
-První podklady k rozhodnutí obsahují explicitní další krok a chybějící informace. Nejsou vydávány za analýzu dokumentu, který nebyl načtený. Odkazy jsou jen zdroje pro člověka; služba je automaticky neotevírá. Bez znalosti účastníků se žádná položka nepovažuje za přesunutelnou vlastní rezervaci.
+Po načtení vznikne normalizovaný balíček a omezený analytický vstup. Model v tomto chatu zpracuje konkrétní podklady podle [runbooku](../../docs/briefing-runbook.md) a pevný publish ověří hash balíčku, skutečné citace, vazbu na položku a stáří. Staré citace se nepřenášejí na změněná data. Obsahově stejný ranní balíček může použít dříve ověřenou analýzu; nové časy vzniknou jen skutečným čtením. Publikace rozlišuje kontext, načtené zdroje a provedenou analýzu. Neúplnost zůstává viditelná i u zpracované karty.
 
-MCP nástroj `iris_get_morning_briefing` nemá parametry a vrací pouze přísně ověřený připravený výstup. Po 30 minutách od nejstaršího použitého zdroje je označený `stale`; Aida musí uvést datum a stáří, zejména u náhledu sestaveného předchozí večer. Čtení briefingu nevyvolá nové načtení ani MFA. Před ranním použitím je nutné explicitně obnovit podklady v platné spárované relaci. Pravidelný scheduler, push události, plná znalostní příprava a rozhodovací zápisy zatím implementované nejsou.
+Soukromé soubory a databáze v ignorovaném `.iris-runtime/` mají adresář 0700 a soubory 0600. MCP smí číst jediný `morning-briefing.json`, nejvýše 24 KiB, nejvýše 24 bloků, 3 priority, 8 souběhů a 14 přípravných karet. Výstup obsahuje datum a skutečný čas zdrojů; po 30 minutách je stale. Čtení briefingu neobnovuje data ani MFA. Služba automaticky neotevírá odkazy mimo nativní schválenou politiku a nevykonává pokyny z dokumentů.
 
-## Ověření
+## Rozvrh a ověření
+
+Aktivní heartbeat běhy tohoto chatu připravují agendu Po–Pá v 18:00 a obnovují ji v 7:00 místního pražského času. Třetí tichý běh dokončuje pouze již čekající analýzu po MFA. Vyžadují zapnutý Mac, přihlášené macOS a dostupnou aplikaci Codex. Aida podle uživatelem předaného potvrzení uložila jednu odpovídající rutinu do hlavního chatu; první skutečné plánované doručení 19. října ještě čeká.
 
 ```sh
 python3 -m unittest discover -s services/iris-core -p 'test_*.py'
 node services/iris-mcp/scripts/briefing-smoke.mjs
 ```
 
-Unit testy jsou syntetické. Smoke čte jen již připravený briefing skutečným sandboxovaným MCP a vypisuje pevná metadata, ne přihlašovací údaje.
+Deset syntetických testů jádra ověřuje mimo jiné páteční a pražské datum, čekání na MFA bez startu, trvalost fronty, souběh, odmítnutí nepravé citace, vazbu analýzy na balíček a odmítnutí zastaralé publikace. Živý nový briefing na 19. října prošel přes skutečné stdio i cloudové Iris Local: 14 karet, dvě analýzy, pět citací, kalendář verified a celkový stav partial. Nativní dávka načetla 9 podkladů / 19 stránek. Elementary meeting stále neprošel kontraktem; přílohy a nepodporované vložené komponenty zůstávají chybějící. [Podrobnosti a otevřené opravy](../../docs/briefing-automation.md).
 
 ## První živý výsledek
 

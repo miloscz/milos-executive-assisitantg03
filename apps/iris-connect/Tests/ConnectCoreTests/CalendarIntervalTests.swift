@@ -2,6 +2,12 @@ import XCTest
 @testable import ConnectCore
 
 final class CalendarIntervalTests: XCTestCase {
+    func testEmptyWeekendDoesNotBlockWeekdayCalibration() throws {
+        let record=try NormalizedRecord(["id":"synthetic","startTime":"2026-10-23T08:00:00Z","endTime":"2026-10-23T09:00:00Z"])
+        let friday=try CalendarInterval.instant("2026-10-23T07:00:00Z")
+        XCTAssertEqual(try CalendarInterval.calibrationOffset(wide:[record],active:[record],now:friday),0)
+        XCTAssertThrowsError(try CalendarInterval.calibrationOffset(wide:[],active:[],now:friday))
+    }
     func testDateOnlyQueryEnclosesPragueDayAndPreservesApprovedCommand() throws {
         let window = try DateWindow(request: .init(operation: "calendar.list", dateFrom: "2026-10-19", dateTo: "2026-10-19"))
         let bounds = try CalendarInterval(window: window)

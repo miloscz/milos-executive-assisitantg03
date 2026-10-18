@@ -125,3 +125,19 @@ Obnovení otevírá jen úzký řídicí socket. Nespouští přihlášení, neo
 Tlačítko „Ověřit přístup aplikace ke klíčence“ je jen místní UI: nativně zkusí přístup ke klientské konfiguraci a uloženým kódům a žádnou hodnotu nevrací. Pokud tento běh nemá ověřenou relaci, odstraní nepoužívanou starou Keychain kopii session bez čtení tokenu, aby další login nevázal starý ACL podpis. Aktivní ověřenou relaci ponechá. Může vyžádat systémový souhlas pro novou podepsanou verzi; nevytváří MFA ani síťový požadavek. Neexistuje CLI/IPC varianta této kontroly.
 
 Čtecí IrisRead párování a potvrzení vlastního prostoru zůstávají samostatné a neobnovují se automaticky po nové relaci. Čtyři nástroje MCP zatím neposkytují pracovní agendu.
+
+
+## Čtecí podklady 0.7.0
+
+Rozšíření `iris-connect-briefing-sources-v1` Miloš výslovně schválil 18. října včetně uuManagementKit `keyTask` a `request`; záznam a výsledný hash jsou v `policies/iris-connect-briefing-sources-v1.approval.json`. Přibalená specifikace musí odpovídat hashi zkompilovanému v `SourcePolicy`. Dosavadní DW politika se nemění.
+
+Podepsaný IrisRead má dvě nové pevné operace bez parametrů: `diagnostics.sources` a `sources.prepare`. Nejde o nové nástroje Aidy. První provede omezené čtení a vrací jen pevné kontroly a počty pro Elementary meeting a čtyři typy ManagementKit. Druhá vrací pouze normalizované podklady již ověřených typů; chybějící typ zůstává zavřený. Obě vybírají zdroje nativně z čerstvého vlastního DW a ověřeného kalendáře, nemají URL, command, souborové ani tokenové argumenty. Nejprve musí v aktuální relaci projít `diagnostics.calendarBoundaries`. Čtení zdrojů samo nezahajuje přihlášení.
+
+Místní volba „Obnovit čtecí párování po příštím přihlášení“ je dostupná pouze v odemčené aplikaci po potvrzení prostoru a IrisRead. Uchovává veřejné hashe podpisů, hash identity a potvrzenou adresu vlastního prostoru. Po novém ověřeném loginu aplikace znovu načte vlastní profil a porovná všechny čtyři vazby; změna účtu, prostoru nebo buildu vyžaduje nové místní potvrzení. Neobnovuje relaci ani souhlas s MFA. Zdrojové a kalendářní kontrakty se po novém loginu ověřují znovu.
+
+Před živým pilotem 0.7.0: jednou zamknout/odemknout Mac, místně ověřit přístup ke klíčence, povolit místní ovládání a obnovu jeho párování, sám se přihlásit a potvrdit MFA, najít a potvrdit vlastní prostor i IrisRead a zapnout obnovu čtecího párování. Agent nečte přihlašovací UI ani údaje. Automatizace a nové obsahové karty jsou následně nasazené; aktuální důkazy a omezení jsou v `docs/briefing-automation.md`.
+
+
+### Ověřená 0.7.1
+
+Oprava přijímá chybějící echo OID v odpovědi Elementary stránky, ale odmítá přítomné rozporné OID. Kalibrace vybírá obsazený den ze společného vzorku místo pevného zítřka, takže prázdná sobota sama nezablokuje páteční přípravu. Prošlo 46 ConnectCore a 11 nativních testů. Po novém místním souhlasu člověka pracovní fronta navázala na čekající úlohu. Všechny čtyři kontrakty ManagementKit prošly živým pilotem; Elementary meeting dál vrací schemaMismatch a jeho texty zůstávají blokované. Není prokázané, že příčinou je právě echo nebo tvar stránky; další diagnostika nesmí uvolnit neznámé serverové warnings. Žádný další build se během uživatelského přihlášení nenasazoval.

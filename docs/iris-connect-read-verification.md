@@ -100,3 +100,26 @@ Samostatná služba `iris-core` dosud neexistuje; přibalený `IrisRead` je prvn
 ## Doručovací cesta po prvním neúspěchu Aidy
 
 Aida v 19:19 hlásila invalidRequest. Nativní kalendář a místní briefing fungovaly; cloudový test chybu zopakoval. Diagnostika pouze metadat procesů odhalila tři staré osiřelé tunely/MCP procesy. Po odstranění a čistém spojení skutečný cloudový iris_get_morning_briefing uspěl. Opravený host 0.2.1 prošel syntetickými životnostními testy i živým restartem bez přeživších potomků. Následný cloudový stav i briefing uspěly s datem 19. října, verified a počty 11/3/2; první volání po restartu mělo přechodný timeout. Problém doručovací cesty se neřešil změnou kalendářního kontraktu ani novým MFA. Miloš následně potvrdil: Aida vypsala stručný ranní briefing. Textové předání po opravě je tedy uživatelsky potvrzené. Celé znění její odpovědi ani přesný čas opakovaného volání nebyly dodané; konkrétní obsah je technicky doložen přímým cloudovým testem, nikoli rozborem této uživatelské odpovědi. Hlasový průchod zůstává neověřený.
+
+
+## Rozšíření zdrojů pro briefing 0.7.0
+
+18. října Miloš schválil čtecí sadu `iris-connect-briefing-sources-v1` s výslovným doplněním `keyTask` a `request`. Schválení váže původní posouzený hash i výsledný hash po těchto dvou doplněních. Zdrojový výběr je omezený na čerstvou vlastní agendu a jeden krok dokumentových odkazů. Žádná změna +4U dat, příloha nebo nový přístup Aidy tím nevzniká.
+
+Nativní implementace obsahuje validaci cíle, svázání entity a stránky, limity celé dávky včetně opakování, místní textové limity, označení nepodporovaného nebo neúplného obsahu a stav ověření po jednotlivých typech. Pevný `diagnostics.sources` nesmí vracet texty; `sources.prepare` připustí normalizované podklady jen ověřeného typu. Chybějící typ bez vlastní položky se neověřuje náhradním cizím zdrojem. Ověření platí pouze pro aktuální relaci.
+
+Místní souhlas s obnovou čtecího párování váže přesné podpisy aplikace i IrisRead, hash identity a potvrzený prostor. Po novém loginu nativní aplikace znovu ověří vlastní profil; souhlas neobnovuje token nebo MFA pokyn. Nový build vyžaduje nové místní povolení.
+
+Živé čtení tohoto rozšíření zatím neproběhlo. Ani syntetické testy, schválená politika a podepsané sestavení nejsou důkazem živého čtení těchto zdrojů. Trvalá fronta, naplánované běhy 18:00/7:00, obsahová analýza nových podkladů a pravidelné předání Aidou jsou stále navazující práce podle `docs/briefing-automation.md`.
+
+
+Podepsaná 0.7.0 je nyní nasazená na tomto Macu. Závěrečná sada: 45 testů ConnectCore a 10 nativního čtení, všechny úspěšné; čtyři testy správce spuštění také prošly. Testy používají výhradně syntetická data. Kontrola prostředků nainstalovaného bundlu potvrdila schválený hash, původní DW politika zůstává beze změny. Při výměně byl dvakrát ověřen nečinný login; předchozí bundle je zachovaný v ignorovaném build/backups. MCP host nebyl zastavený a sanitizovaný stav dál potvrzuje ready. Relace ani MFA se při nasazení nespustily. Čeká se na místní souhlasy člověka, jeho přihlášení a čtecí párování před živým pilotem.
+
+
+## Aktuální živé ověření 0.7.1 a automatické přípravy
+
+Následující stav nahrazuje čekání uvedené u historické 0.7.0 výše. Miloš dokončil nový místní souhlas, ověření přihlášení/MFA a párování. Fronta po skutečném dokončení sama navázala. Pilot ověřil ManagementKit meeting/document/keyTask/request s počty stran 1/1/4/1. Elementary meeting zůstal schemaMismatch, bez textového výstupu a bez prokázané přesné příčiny; neznámé warnings se dál odmítají. Změna na 0.7.1 neopravila tento živý kontrakt. Nativní sada má 46 Core + 11 Native úspěšných syntetických testů.
+
+Pro pondělí 19. října vznikl nový soukromý balíček: aktuální agenda od 20:23:56 Europe/Prague, zdroje do 20:26:25; devět podkladů na 19 stránkách. Model připravil dvě rozhodovací analýzy s pěti doslovně ověřenými citacemi. Pevný publisher zkontroloval balíček a soukromý pracovní stav, předal 14 karet, uvedl neúplnost a stav partial. Místní sandboxované stdio i skutečný cloudový Iris Local vrátily nový výstup jako current, calendarCoverage=verified, 11 bloků / 3 priority / 2 souběhy. Tento test nevyvolal žádné přihlášení ani MFA.
+
+Aktivní rozvrhy, stavy a rozdíl mezi uloženou rutinou a skutečným doručením eviduje [runbook](briefing-runbook.md). Uživatel předal potvrzení uložené rutiny hlavní Aidy, ale první plánované ranní doručení a hlas ještě neproběhly. Podklady zůstávají částečné; nelze tvrdit kompletní přípravu všech schůzek.

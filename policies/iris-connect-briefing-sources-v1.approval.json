@@ -1,0 +1,14 @@
+{
+  "policyId": "iris-connect-briefing-sources-v1",
+  "version": 1,
+  "specification": "iris-connect-briefing-sources-v1.draft.json",
+  "sha256": "85f464e2bf73f5435ef818ec0c98ae65697ea7ab35fc344ef9450d2d16c345e6",
+  "approvedOn": "2026-10-18",
+  "source": "Explicit human approval in this project conversation",
+  "approvalText": "Tak tam přidej ještě keyTask i request. Jinak schvaluji.",
+  "reviewedBaseSha256": "e8fbb7f656b03234d24b6ba1576e7cc7024affc6e2b65281c30a6d8a47c00e50",
+  "explicitAmendments": [
+    "Add ManagementKit keyTask and request to allowed own task sources and bounded one-hop source routes; preserve existing total document and page budgets"
+  ],
+  "scope": "Implementation and bounded native contract pilots; routine reads remain gated by type-specific verification results."
+}

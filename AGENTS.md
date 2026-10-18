@@ -48,3 +48,7 @@ Od verze 0.5.0 smí nativní Iris Connect na samostatný místní souhlas obnovi
 Automatické testy používají syntetická data. Živé MFA potvrzuje člověk. Veřejné discovery, úspěšné sestavení a přihlášení v jiné aplikaci nejsou důkazem živého AC1/AC2 a MFA v Iris Connect. Rozlišuj podepsaný token, úspěšné čtení a uživatelské potvrzení MFA.
 
 Pracovní uuCommandy se povolují až podle schválené sady a podmínek parametrů. První přihlašovací prototyp obsahuje jen pevné autentizační operace a čtecí ověření identity. Původní Iris v `/Users/milosvodrazka/Personal/milos_executive_assistant` se zatím neupravuje ani nevypíná.
+
+## Schválené zdroje briefingu
+
+Miloš 18. října 2026 schválil `iris-connect-briefing-sources-v1` včetně uuManagementKit `document`, `meeting`, `keyTask` a `request`. Přesný hash a výslovnou změnu proti posouzenému návrhu váže `policies/iris-connect-briefing-sources-v1.approval.json`. Samotné úpravy souborů politiku nezapínají. Nativní pilot vrací pouze pevné kontroly a počty; provozní normalizované texty se povolují až podle ověřeného zdrojového typu. Nejvýše jeden krok odkazů do povolených dokumentových typů, bez příloh a bez jakéhokoli dalšího přístupu Aidy. Změny mimo tuto sadu vyžadují nové schválení.

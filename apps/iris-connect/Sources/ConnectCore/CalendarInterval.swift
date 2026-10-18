@@ -69,4 +69,16 @@ public struct CalendarInterval: Codable, Equatable {
         for record in records where try includes(record, documentedPredicate: documentedPredicate) { ids.insert(record.id) }
         return ids
     }
+
+    public static func calibrationOffset(wide:[NormalizedRecord],active:[NormalizedRecord],now:Date) throws -> Int {
+        var cal = Calendar(identifier:.gregorian);cal.timeZone = TimeZone(identifier:"Europe/Prague")!
+        let f = DateFormatter();f.timeZone=cal.timeZone;f.locale=Locale(identifier:"en_US_POSIX");f.dateFormat="yyyy-MM-dd"
+        for offset in [1,0] + Array(2...29) + Array(stride(from:-1,through:-7,by:-1)) {
+            let day=f.string(from:cal.date(byAdding:.day,value:offset,to:now)!)
+            let bounds=try CalendarInterval(window:DateWindow(request:.init(operation:"calendar.list",dateFrom:day,dateTo:day)))
+            let known=try bounds.ids(wide), own=try bounds.ids(active)
+            if !known.intersection(own).isEmpty { return offset }
+        }
+        throw ReadFailure.contractPending
+    }
 }

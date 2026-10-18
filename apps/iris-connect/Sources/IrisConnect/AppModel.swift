@@ -53,6 +53,7 @@ final class AppModel: NSObject, ObservableObject, WKNavigationDelegate, WKUIDele
 
     override init() {
         super.init()
+        reads.canConfigure = { [weak self] in self.map { !$0.locked && !$0.busy } ?? false }
         // The lock key is not a documented contract. Missing/unknown values fail closed.
         if let session = CGSessionCopyCurrentDictionary() as? [String: Any],
            let value = session["CGSSessionScreenIsLocked"] as? Bool { locked = value }

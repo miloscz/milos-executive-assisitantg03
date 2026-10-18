@@ -56,10 +56,18 @@ actor ReadTransport {
         try await get(ReadPolicy.url(base: base, operation: operation, window: window, page: index, calendarBounds: calendarBounds), session: session, deadline: deadline)
     }
 
-    private func get(_ url: URL, session auth: VerifiedSession, deadline: Date) async throws -> ([String: Any], Int) {
+    func source(_ target: SourceTarget, page: String? = nil, bid: String? = nil,
+                session: VerifiedSession, budget: SourceBudget) async throws -> [String: Any] {
+        let url = try page.map { try target.contentURL(page: $0, bid: bid) } ?? target.detailURL()
+        let (object, _) = try await get(url, session: session, deadline: budget.deadline, budget: budget)
+        return object
+    }
+
+    private func get(_ url: URL, session auth: VerifiedSession, deadline: Date, budget: SourceBudget? = nil) async throws -> ([String: Any], Int) {
         await acquire(); defer { release() }
         for attempt in 0...2 {
             guard auth.expiresAt > Date() else { throw ReadFailure.loginRequired }
+            try await budget?.attempt()
             try await throttle(deadline: deadline)
             var request = URLRequest(url: url)
             request.httpMethod = "GET"; request.timeoutInterval = min(20, max(0.01, deadline.timeIntervalSinceNow))
@@ -100,6 +108,7 @@ actor ReadTransport {
                     guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw ReadFailure.schemaMismatch }
                     // Unknown server warnings can indicate an ignored parameter, so fail closed.
                     if let errors = object["uuAppErrorMap"] as? [String: Any], !errors.isEmpty { throw ReadFailure.schemaMismatch }
+                    try await budget?.consume(data.count)
                     return (object, data.count)
                 }
             } catch let failure as ReadFailure { throw failure }
@@ -111,5 +120,19 @@ actor ReadTransport {
             try await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
         }
         throw ReadFailure.transport
+    }
+}
+
+actor SourceBudget {
+    nonisolated let deadline: Date
+    private var attempts = 0
+    private var bytes = 0
+    init(now: Date = Date()) { deadline = now.addingTimeInterval(600) }
+    func attempt() throws {
+        guard Date() < deadline else { throw ReadFailure.deadline }
+        guard attempts < 120 else { throw ReadFailure.rateLimited }; attempts += 1
+    }
+    func consume(_ count: Int) throws {
+        bytes += count; guard bytes <= 134_217_728 else { throw ReadFailure.responseTooLarge }
     }
 }

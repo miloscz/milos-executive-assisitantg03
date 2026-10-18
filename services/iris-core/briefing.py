@@ -14,6 +14,7 @@ import subprocess
 import tempfile
 from urllib.parse import urlsplit, parse_qsl
 from zoneinfo import ZoneInfo
+from preparation import history_for, cards_for
 
 ROOT = Path(__file__).resolve().parents[2]
 RUNTIME = ROOT / '.iris-runtime'
@@ -37,6 +38,8 @@ def wire(value):
 def plain(value, maximum=800):
     if not isinstance(value, str):
         return ''
+    if re.search(r'Bearer\s+\S+|(?:authorization|set-cookie|cookie|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|accessCode[12]|AC[12])\s*[:=]', value, re.I):
+        return '[Obsah zadržen kvůli možným přístupovým údajům.]'
     value = re.sub(r'<[^>]*>', ' ', value)
     value = re.sub(r'[\x00-\x1f\x7f]', ' ', value)
     value = re.sub(r'\bsk-[A-Za-z0-9_-]{16,}|\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+', '[odstraněno]', value)
@@ -174,6 +177,32 @@ def private_write(name, value):
         if os.path.exists(temp): os.unlink(temp)
 
 
+def publish(active, calendar, target, now, sources=None, workflow=None, analysis=None):
+    value = compile_briefing(active, calendar, target, now)
+    historical = history_for(value['schedule'], target, plain, source)
+    value['preparations'] = cards_for(value, active, historical, sources or {}, plain)
+    if analysis:
+        by_id = {card['id']: card for card in analysis}
+        value['preparations'] = [by_id.get(card['id'], card) for card in value['preparations']]
+    cards = {card['id']: card for card in value['preparations']}
+    for item in value['priorities']:
+        if item['id'] in cards:
+            item['nextStep'] = cards[item['id']]['nextStep']
+    if workflow:
+        value['workflow'] = workflow
+    value['warnings'][0] = ('Přípravy rozlišují načtené zdroje, historický kontext a obsahovou analýzu. '
+                            'Chybějící nebo neúplné podklady jsou označené. Nic nebylo schváleno, přesunuto ani zapsáno do inboxu.')
+    removed = 0
+    while len(json.dumps(value, ensure_ascii=False).encode()) > 23500 and value['preparations']:
+        value['preparations'].pop(); removed += 1
+    if removed:
+        value['warnings'].append('Přípravné podklady jsou kvůli limitu zkrácené; ne všechny položky mají v tomto výstupu detail.')
+    if len(json.dumps(value, ensure_ascii=False).encode()) > 24576:
+        raise ValueError('briefing_too_large')
+    private_write('morning-briefing.json', value)
+    return value
+
+
 def read_native(operation, target=None):
     args = [str(ROOT / 'build/Iris Connect.app/Contents/MacOS/IrisRead'), operation]
     if target is not None: args += [target.isoformat(), target.isoformat()]
@@ -203,6 +232,7 @@ def main():
     else:
         active = json.loads((RUNTIME / 'active-records.json').read_text())
         calendar = None
+    # Legacy diagnostic compiler; scheduled production runs use workflow.py.
     briefing = compile_briefing(active, calendar, target, now)
     private_write('morning-briefing.json', briefing)
     print(json.dumps({'ok': True, 'date': briefing['date'], 'calendarCoverage': briefing['calendarCoverage'],

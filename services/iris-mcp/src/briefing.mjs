@@ -17,11 +17,23 @@ const priority=z.strictObject({id:identifier,title:short,due:date,why:short,next
 const day=z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(x=>{
  const d=new Date(x+'T00:00:00Z');return Number.isFinite(+d)&&d.toISOString().slice(0,10)===x;
 });
+const preparation=z.strictObject({id:identifier,kind:z.enum(['meeting','decision','task']),
+ readiness:z.enum(['contextOnly','sourcesLoaded','prepared']),context:text.pipe(z.string().max(1800)),
+ questions:z.array(short).max(3),missing:z.array(short).max(4),nextStep:short,
+ evidence:z.array(z.strictObject({sourceURL:link,pageId:identifier,quote:short})).max(3),
+ historicalDate:day.optional(),historicalSourceURL:link.optional()})
+ .refine(x=>x.readiness!=='prepared'||x.evidence.length>0);
+const workflow=z.strictObject({phase:z.enum(['prepare','morning']),targetDate:day,
+ state:z.enum(['queued','awaitingAccess','awaitingBinding','needsAnalysis','ready','partial','failed','superseded']),updatedAt:date});
 export const briefingSchema=z.strictObject({schemaVersion:z.literal(1),date:day,
  timezone:z.literal('Europe/Prague'),generatedAt:date,sourceFetchedAt:date,
  calendarCoverage:z.enum(['verified','activeRecordsOnly']),summary:text,warnings:z.array(short).max(8),
  schedule:z.array(item).max(24),priorities:z.array(priority).max(5),
- conflicts:z.array(z.strictObject({start:date,end:date,titles:z.array(short).min(2).max(6)})).max(8)});
+ conflicts:z.array(z.strictObject({start:date,end:date,titles:z.array(short).min(2).max(6)})).max(8),
+ preparations:z.array(preparation).max(14).optional(),workflow:workflow.optional()}).refine(value=>{
+ const ids=new Set([...value.schedule,...value.priorities].map(x=>x.id));
+ return !value.preparations||value.preparations.every(x=>ids.has(x.id));
+});
 const failure=z.strictObject({ok:z.literal(false),error:z.enum(['briefingNotPrepared','briefingUnavailable','invalidRequest','rateLimited'])});
 export const briefingOutputSchema=z.strictObject({ok:z.boolean(),error:failure.shape.error.optional(),
  freshness:z.enum(['current','stale']).optional(),briefing:briefingSchema.optional()}).superRefine((value,ctx)=>{

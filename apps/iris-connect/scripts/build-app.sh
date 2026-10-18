@@ -25,6 +25,7 @@ cp "$TASK_BIN/IrisConnect" "$TASK_APP/Contents/MacOS/IrisConnect"
 cp "$TASK_BIN/IrisRead" "$TASK_APP/Contents/MacOS/IrisRead"
 cp "$TASK_BIN/IrisControl" "$TASK_APP/Contents/MacOS/IrisControl"
 cp "$TASK_REPO/policies/iris-connect-read-v1.draft.json" "$TASK_APP/Contents/Resources/iris-connect-read-v1.json"
+cp "$TASK_REPO/policies/iris-connect-briefing-sources-v1.draft.json" "$TASK_APP/Contents/Resources/iris-connect-briefing-sources-v1.json"
 codesign --force --sign - --identifier net.iris.connect.read-client --options runtime --timestamp=none "$TASK_APP/Contents/MacOS/IrisRead"
 codesign --force --sign - --identifier net.iris.connect.auth-client --options runtime --timestamp=none "$TASK_APP/Contents/MacOS/IrisControl"
 /usr/libexec/PlistBuddy -c 'Clear dict' "$TASK_APP/Contents/Info.plist" >/dev/null 2>&1 || true
@@ -37,8 +38,8 @@ cat > "$TASK_APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleDisplayName</key><string>Iris Connect</string>
 <key>CFBundleExecutable</key><string>IrisConnect</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.6.2</string>
-<key>CFBundleVersion</key><string>11</string>
+<key>CFBundleShortVersionString</key><string>0.7.1</string>
+<key>CFBundleVersion</key><string>13</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSPrincipalClass</key><string>NSApplication</string>

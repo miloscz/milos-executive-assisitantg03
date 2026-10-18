@@ -66,7 +66,7 @@ private struct ContentView: View {
                     Label("1. Zadej AC1 a AC2 v soukromém okně aplikace.", systemImage: "key")
                     Label("2. Spusť přihlášení a potvrď MFA u +4U.", systemImage: "iphone")
                     Label("3. Aplikace ověří token a provede jedno čtení identity.", systemImage: "checkmark.shield")
-                    Text("Kódy ani tokeny se nepředávají agentům. Čtecí rozhraní má schválenou sadu čtyř commandů a neprovádí změny úkolů ani kalendáře.")
+                    Text("Kódy ani tokeny se nepředávají agentům. Čtecí rozhraní používá jen schválené operace pro vlastní agendu a její podklady. Úkoly ani kalendář nemění.")
                         .font(.callout).foregroundStyle(.secondary)
                     Button("Převzít konfiguraci klienta původní Iris…") { model.importClientConfiguration() }
                         .disabled(model.locked || model.busy)
@@ -87,7 +87,7 @@ private struct ContentView: View {
                     Toggle("Povolit přihlášení přes MCP při zamčené obrazovce", isOn: Binding(get: { model.backgroundLoginEnabled }, set: { model.setBackgroundLoginEnabled($0) }))
                         .disabled(model.locked || model.busy)
                     Text("Jen po novém pokynu přes Aidu. macOS zůstává zamčený; při požadavku klíčenky na místní souhlas se pokus zastaví. Po restartu musí být přihlášený uživatel. Pokud aplikace nezná počáteční stav zámku, pro nastavení jednou Mac zamkni a odemkni.").font(.caption).foregroundStyle(.secondary)
-                    ReadControls(engine: model.reads, authenticated: model.verified)
+                    ReadControls(engine: model.reads, authenticated: model.verified, canConfigure: !model.locked && !model.busy)
                     Spacer()
                 }
                 .padding(24).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -126,20 +126,25 @@ private struct AuthControls: View {
 private struct ReadControls: View {
     @ObservedObject var engine: ReadEngine
     let authenticated: Bool
+    let canConfigure: Bool
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Divider()
             Text("Schválené čtení agendy").font(.headline)
             Text(engine.status).font(.callout)
             Button("Najít můj pracovní prostor") { engine.findWorkspace() }
-                .disabled(!authenticated || engine.working || engine.paired)
+                .disabled(!canConfigure || !authenticated || engine.working || engine.paired)
             if let candidate = engine.candidate, !engine.paired {
                 Text(candidate.absoluteString).font(.caption).textSelection(.disabled)
                 Text("Potvrzením povolíš tento vlastní prostor a přibalený podepsaný program IrisRead. Párování platí pro tento běh aplikace.").font(.caption)
                 Button("Potvrdit vlastní prostor a místního klienta") { engine.pairAndBind() }
-                    .disabled(engine.working || !authenticated)
+                    .disabled(!canConfigure || engine.working || !authenticated)
             }
             if engine.paired {
+                Toggle("Obnovit čtecí párování po příštím přihlášení", isOn: Binding(
+                    get: { engine.remembersReadBinding }, set: { engine.setRememberReadBinding($0) }))
+                    .disabled(!canConfigure || engine.working)
+                Text("Jen pro stejný účet, vlastní prostor a stejnou podepsanou verzi aplikace i IrisRead. Nespouští přihlášení ani MFA.").font(.caption)
                 Button("Ověřit čtení úkolů a kalendáře") { engine.verifyReads() }.disabled(engine.working)
             }
             ForEach(engine.checks, id: \.operation) { check in

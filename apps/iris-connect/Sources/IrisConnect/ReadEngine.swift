@@ -53,6 +53,12 @@ final class ReadEngine: ObservableObject {
     @Published private(set) var paired = false
     @Published private(set) var working = false
     @Published private(set) var checks: [ReadCheck] = []
+    @Published private(set) var sourceChecks: [SourceCheck] = []
+    @Published private(set) var remembersReadBinding = false
+    var canConfigure: () -> Bool = { false }
+    private let readApprovalKey = "readBindingApprovalV1"
+    private var sourceTypesVerified = Set<String>()
+    private var sourcesWorking = false
     private var auth: VerifiedSession?
     private var bound: URL?
     private var generation = UUID()
@@ -71,18 +77,41 @@ final class ReadEngine: ObservableObject {
     func install(_ session: VerifiedSession) {
         disconnect(); auth = session
         status = "Relace je připravená. Najdi a potvrď vlastní pracovní prostor."
+        let epoch = generation
+        guard let data = UserDefaults.standard.data(forKey: readApprovalKey),
+              let approval = try? JSONDecoder().decode(ReadBindingApproval.self, from: data) else { return }
+        working = true
+        Task {
+            defer { if epoch == generation { working = false } }
+            do {
+                let current = try codeHashes()
+                guard approval.matches(appHash: current.app, helperHash: current.helper, identity: session.identity, workspace: approval.workspace) else { throw ReadFailure.pairingRequired }
+                let object = try await transport.person(identity: session.identity, session: session)
+                guard epoch == generation else { return }
+                let workspace = try ReadPolicy.personWorkspace(object, identity: session.identity)
+                guard approval.matches(appHash: current.app, helperHash: current.helper, identity: session.identity, workspace: workspace.absoluteString) else { throw ReadFailure.bindingRequired }
+                candidate = workspace; try startReadServer(); remembersReadBinding = true
+                status = "Čtecí párování stejného účtu a prostoru je obnovené. Kalendář a zdroje se znovu ověří."
+            } catch {
+                guard epoch == generation else { return }
+                remembersReadBinding = false
+                status = "Automatická obnova čtení není dostupná. Potvrď vlastní prostor a klienta místně."
+            }
+            writeReceipt()
+        }
     }
 
     func disconnect() {
         generation = UUID(); auth = nil; bound = nil; candidate = nil; paired = false; working = false
         for task in flights.values { task.cancel() }; flights.removeAll(); cache.removeAll(); checks = []
         server?.stop(); server = nil; calendarVerified = false
+        sourceTypesVerified.removeAll(); sourceChecks = []; remembersReadBinding = false
         status = "Čtecí rozhraní čeká na přihlášení."
         writeReceipt()
     }
 
     func findWorkspace() {
-        guard !working, specificationValid, let auth, auth.expiresAt > Date() else { status = "Nejdřív se přihlas v aplikaci."; return }
+        guard canConfigure(), !working, specificationValid, let auth, auth.expiresAt > Date() else { status = "Nejdřív se přihlas v odemčené aplikaci."; return }
         working = true; status = "Ověřuji vlastní prostor přes people/findPerson."
         let epoch = generation
         Task {
@@ -101,8 +130,16 @@ final class ReadEngine: ObservableObject {
     }
 
     func pairAndBind() {
-        guard specificationValid, let candidate, let auth, auth.expiresAt > Date(), !working else { return }
+        guard canConfigure(), specificationValid, candidate != nil, let auth, auth.expiresAt > Date(), !working else { return }
         do {
+            try startReadServer()
+            status = "Vlastní prostor a přibalený klient IrisRead jsou spárované pro tento běh."
+            writeReceipt()
+        } catch { status = "Párování: \((error as? ReadFailure ?? .pairingRequired).rawValue)." }
+    }
+
+    private func startReadServer() throws {
+            guard specificationValid, let candidate else { throw ReadFailure.bindingRequired }
             let helper = Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/IrisRead")
             let hash = try LocalIPC.codeHash(LocalIPC.staticCode(helper))
             let next = ReadServer(approvedHelperHash: hash) { [weak self] data in
@@ -111,9 +148,22 @@ final class ReadEngine: ObservableObject {
             }
             try next.start()
             bound = candidate; paired = true; server = next
-            status = "Vlastní prostor a přibalený klient IrisRead jsou spárované pro tento běh."
-            writeReceipt()
-        } catch { status = "Párování: \((error as? ReadFailure ?? .pairingRequired).rawValue)." }
+    }
+
+    private func codeHashes() throws -> (app: String, helper: String) {
+        (try LocalIPC.codeHash(LocalIPC.staticCode(Bundle.main.bundleURL)),
+         try LocalIPC.codeHash(LocalIPC.staticCode(Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/IrisRead"))))
+    }
+    func setRememberReadBinding(_ enabled: Bool) {
+        guard canConfigure(), !working else { return }
+        if !enabled { UserDefaults.standard.removeObject(forKey: readApprovalKey); remembersReadBinding = false; return }
+        guard paired, let bound, let auth, auth.expiresAt > Date() else { return }
+        do {
+            let hashes = try codeHashes()
+            let approval = ReadBindingApproval(appHash: hashes.app, helperHash: hashes.helper, identity: auth.identity, workspace: bound.absoluteString)
+            UserDefaults.standard.set(try JSONEncoder().encode(approval), forKey: readApprovalKey)
+            remembersReadBinding = true
+        } catch { status = "Uložení čtecího souhlasu se nezdařilo." }
     }
 
     func verifyReads() {
@@ -235,17 +285,20 @@ final class ReadEngine: ObservableObject {
             guard ["timeblock", "dayblock"].contains(record.showInDiary?.lowercased() ?? "") else { throw ReadFailure.schemaMismatch }
             _ = try wideBounds.includes(record)
         }
-        let tomorrow = try window(1, 1), tomorrowBounds = try CalendarInterval(window: tomorrow)
-        let exact = try await raw(tomorrowBounds, window: tomorrow)
-        let explicit = Set(exact.map(\.id)) == (try tomorrowBounds.ids(wide))
+        // Empty weekend days must not prevent a weekday refresh. Pick a populated
+        // calibration day from the same already authorized [-7,+30] sample.
         let active = await read(.init(operation: ReadOperation.active.rawValue, fresh: true))
         guard active.complete else { throw active.incompleteReason ?? ReadFailure.transport }
         let blockingActive = active.records.filter { ["timeblock", "dayblock"].contains($0.showInDiary?.lowercased() ?? "") }
+        let calibrationOffset = try CalendarInterval.calibrationOffset(wide:wide, active:blockingActive, now:today)
+        let tomorrow = try window(calibrationOffset, calibrationOffset), tomorrowBounds = try CalendarInterval(window: tomorrow)
+        let exact = try await raw(tomorrowBounds, window: tomorrow)
+        let explicit = Set(exact.map(\.id)) == (try tomorrowBounds.ids(wide))
         let activeExpected = try tomorrowBounds.ids(blockingActive)
         let activeCoverage = activeExpected.isSubset(of: Set(exact.map(\.id)))
-        let next = try window(2, 2), nextBounds = try CalendarInterval(window: next)
+        let next = try window(calibrationOffset+1, calibrationOffset+1), nextBounds = try CalendarInterval(window: next)
         let nextRows = try await raw(nextBounds, window: next)
-        let joinedWindow = try window(1, 2), joinedBounds = try CalendarInterval(window: joinedWindow)
+        let joinedWindow = try window(calibrationOffset, calibrationOffset+1), joinedBounds = try CalendarInterval(window: joinedWindow)
         let joined = try await raw(joinedBounds, window: joinedWindow)
         let expectedNext = try nextBounds.ids(wide)
         let adjacent = Set(exact.map(\.id)).union(nextRows.map(\.id)) == Set(joined.map(\.id))
@@ -264,8 +317,8 @@ final class ReadEngine: ObservableObject {
         }
         // Establish the UTC-midnight interpretation of the supported date() wire
         // format against the wider sample before enabling its enclosing adapter.
-        let legacyWindow = try window(1, 2), legacy = try await raw(nil, window: legacyWindow)
-        let legacyBounds = try CalendarInterval(lower: CalendarInterval.instant(day(1) + "T00:00:00Z"), upper: CalendarInterval.instant(day(2) + "T00:00:00Z"))
+        let legacyWindow = try window(calibrationOffset, calibrationOffset+1), legacy = try await raw(nil, window: legacyWindow)
+        let legacyBounds = try CalendarInterval(lower: CalendarInterval.instant(day(calibrationOffset) + "T00:00:00Z"), upper: CalendarInterval.instant(day(calibrationOffset+1) + "T00:00:00Z"))
         let legacyUTC = Set(legacy.map(\.id)) == (try legacyBounds.ids(wide, documentedPredicate: true))
         let models = try CalendarInterval.dateModels(window: legacyWindow)
         let matchingModels = try models.filter { try $0.bounds.ids(wide, documentedPredicate: true) == Set(legacy.map(\.id)) }.map(\.name)
@@ -298,11 +351,110 @@ final class ReadEngine: ObservableObject {
             }
             if request.operation == "diagnostics.verifyReads" { return encode(await pilot()) }
             if request.operation == "diagnostics.calendarBoundaries" { return encode(try await verifyCalendarBoundaries()) }
+            if request.operation == "diagnostics.sources" { return encode(try await sourceBatch(pilot: true)) }
+            if request.operation == "sources.prepare" { return encode(try await sourceBatch(pilot: false)) }
             let result = await read(request)
             // Unverified contracts never export personal records to a normal client.
             guard result.contractVerified else { throw result.incompleteReason ?? ReadFailure.contractPending }
             return encode(result)
         } catch { return encode(ErrorResult(ok: false, error: error as? ReadFailure ?? .schemaMismatch)) }
+    }
+
+    private struct SourceBatch: Encodable {
+        let ok: Bool
+        let policy: String
+        let fetchedAt: Date
+        let complete: Bool
+        let checks: [SourceCheck]
+        let materials: [SourceMaterial]
+    }
+
+    private func sourceBatch(pilot: Bool) async throws -> SourceBatch {
+        guard !sourcesWorking else { throw ReadFailure.rateLimited }
+        guard specificationValid, let file = Bundle.main.url(forResource: SourcePolicy.id, withExtension: "json"),
+              let data = try? Data(contentsOf: file), SourcePolicy.approved(data) else { throw ReadFailure.policyDenied }
+        guard paired, let auth, auth.expiresAt > Date() else { throw ReadFailure.loginRequired }
+        sourcesWorking = true; defer { sourcesWorking = false }
+        let epoch = generation, snapshotTime = Date()
+        let active = await read(.init(operation: ReadOperation.active.rawValue, fresh: true))
+        guard epoch == generation, active.complete else { throw active.incompleteReason ?? ReadFailure.cancelled }
+        // No inferred calendar availability or final records may seed a source read.
+        guard calendarVerified else { throw ReadFailure.contractPending }
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Europe/Prague")!
+        let f = DateFormatter(); f.timeZone = cal.timeZone; f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"
+        let calendar = await read(.init(operation: ReadOperation.calendar.rawValue,
+            dateFrom: f.string(from: snapshotTime), dateTo: f.string(from: cal.date(byAdding: .day, value: 13, to: snapshotTime)!), fresh: true))
+        guard epoch == generation, calendar.complete else { throw calendar.incompleteReason ?? ReadFailure.cancelled }
+        var candidates: [(NormalizedRecord, SourceTarget)] = [], seen = Set<String>()
+        for record in (active.records + calendar.records).sorted(by: { ($0.startTime ?? "9999") < ($1.startTime ?? "9999") }) {
+            guard let url = record.sourceURL, let target = try? SourceTarget(sourceURL: url),
+                  SourcePolicy.eligible(record, target: target, now: snapshotTime), seen.insert(url).inserted else { continue }
+            // Non-meeting sources must originate in the complete active list.
+            if target.entityType != "meeting", !active.records.contains(where: { $0.id == record.id }) { continue }
+            candidates.append((record,target))
+        }
+        // Give near decisions precedence over historical backlog; retained items
+        // outside the bounded batch remain explicitly incomplete.
+        candidates.sort { left, right in
+            func rank(_ value: (NormalizedRecord, SourceTarget)) -> (Int, String, String) {
+                let (record, target) = value
+                if target.entityType == "meeting" { return (0, record.startTime ?? "9999", record.id) }
+                let due = (try? CalendarInterval.instant(record.endTime ?? record.startTime)) ?? .distantPast
+                let recent = due >= snapshotTime.addingTimeInterval(-7 * 86400)
+                return (recent ? 1 : 2, record.activityType == "decide" ? "0" : "1", record.endTime ?? record.startTime ?? "9999")
+            }
+            return rank(left) < rank(right)
+        }
+        let budget = SourceBudget(), reader = SourceReader(transport: transport, auth: auth, budget: budget)
+        var materials: [SourceMaterial] = [], checks: [SourceCheck] = [], tested = Set<String>()
+        var meetings = 0, documents = 0, textCount = 0, complete = true, visited = Set<String>()
+        func type(_ target: SourceTarget) -> String { target.elementary ? "elementaryMeeting" : "managementKit." + target.entityType }
+        for (record, target) in candidates {
+            guard epoch == generation else { throw ReadFailure.cancelled }
+            if visited.contains(target.sourceURL) { continue }
+            guard Date().timeIntervalSince(snapshotTime) < 300 else { complete = false; break }
+            let key = type(target)
+            if pilot && tested.contains(key) { continue }
+            if target.entityType == "meeting" { if meetings >= 16 { complete = false; continue }; meetings += 1 }
+            else { if documents >= 8 { complete = false; continue }; documents += 1 }
+            guard pilot || sourceTypesVerified.contains(key) else { complete = false; continue }
+            tested.insert(key); visited.insert(target.sourceURL)
+            do {
+                let material = try await reader.load(target, recordId: record.id)
+                guard epoch == generation else { throw ReadFailure.cancelled }
+                checks.append(SourceCheck(type: key, verified: true, pages: material.pageCoverage, reason: nil))
+                if pilot { sourceTypesVerified.insert(key); continue }
+                textCount += material.preparationText.count + material.minutesText.count
+                if textCount > 600000 { complete = false; break }
+                materials.append(material); complete = complete && material.complete
+                // Exactly one hop from roots; secondary material is never recursed.
+                for link in SourcePolicy.documentLinks(material.preparationText + "\n" + material.minutesText) {
+                    if !visited.insert(link).inserted { continue }
+                    guard documents < 8, Date().timeIntervalSince(snapshotTime) < 300,
+                          let secondary = try? SourceTarget(sourceURL: link), sourceTypesVerified.contains(type(secondary)) else { complete = false; continue }
+                    documents += 1
+                    do {
+                        let child = try await reader.load(secondary, recordId: record.id, parent: target.sourceURL)
+                        guard epoch == generation else { throw ReadFailure.cancelled }
+                        textCount += child.preparationText.count
+                        if textCount > 600000 { complete = false; break }
+                        materials.append(child); complete = complete && child.complete
+                    } catch { complete = false }
+                }
+            } catch {
+                guard epoch == generation else { throw ReadFailure.cancelled }
+                complete = false
+                let shape = error as? SourceShapeFailure
+                checks.append(SourceCheck(type: key, verified: false, pages: 0, reason: error as? ReadFailure ?? .schemaMismatch,stage:shape?.stage,shape:shape?.flags))
+            }
+        }
+        if pilot {
+            for key in ["elementaryMeeting", "managementKit.meeting", "managementKit.document", "managementKit.keyTask", "managementKit.request"] where !tested.contains(key) {
+                checks.append(SourceCheck(type: key, verified: false, pages: 0, reason: .contractPending))
+            }
+            sourceChecks = checks; complete = checks.allSatisfy(\.verified)
+        }
+        return SourceBatch(ok: true, policy: SourcePolicy.id, fetchedAt: Date(), complete: complete, checks: checks, materials: pilot ? [] : materials)
     }
 
     private func encode<T: Encodable>(_ value: T) -> Data {
