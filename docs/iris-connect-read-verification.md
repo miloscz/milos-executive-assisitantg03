@@ -1,17 +1,19 @@
 # Ověření čtecího rozhraní Iris Connect
 
-## Ověření časových hranic – implementace 0.6.0
+## Ověření časových hranic – oprava 0.6.1
 
 Primární dokumentace dohledaná přes uuKnowledgeBase:
 
 - [uuDwRecord/listMyDiaryRecords](https://uuapp.plus4u.net/uu-bookkit-maing01/07bedd5d4f6b4cb49a4193382a8063e6/book/page?code=99057852): GET, dva nezávislé seznamy aktivních a finálních záznamů, validátory date(), výběr DAO listBlockingByDateRange, módy timeBlock/dayBlock.
-- [uuDwrActive DAO](https://uuapp.plus4u.net/uu-bookkit-maing01/07bedd5d4f6b4cb49a4193382a8063e6/book/page?code=97936972): doslovný predikát `F < f && T > f || F < t && T > t || F >= f && T <= t`, kde F/T jsou startTime/endTime záznamu a f/t hranice dotazu. Dokumentace používá i zápis DayBlock; adaptér rozpoznává oba zápisy bez rozlišení velikosti písmen.
+- [uuDwrActive DAO](https://uuapp.plus4u.net/uu-bookkit-maing01/07bedd5d4f6b4cb49a4193382a8063e6/book/page?code=97936972): predikát `F < f && T > f || F < t && T > t || F >= f && T <= t`, kde F/T jsou startTime/endTime záznamu a f/t hranice dotazu.
 
-Tyto zdroje neprokazují interpretaci datumového řetězce, zónu, převod v ABL nebo chování přes DST. Druhé cílené hledání tuto mezeru nepotvrdilo jako vyřešenou. Nový adaptér proto používá explicitní ISO UTC okamžiky pro místní Europe/Prague půlnoci; nativní read-only kalibrace musí jejich přijetí a překryv ověřit proti širšímu oknu, úplnému aktivnímu seznamu a dvěma dotazům s přesnou hranicí existující události. Žádné nové uuCommandy, cíle nebo zápisy se nepovolují. Běžný klient zůstává zablokovaný do úspěchu kalibrace daného běhu.
+Po místním přihlášení, MFA a párování 0.6.0 potvrzeném Milošem selhal první diagnostický dotaz s ISO timestampy jako `httpFailure`. HTTP status ani tělo nebyly exportované; přesnou serverovou příčinu z tohoto výsledku nelze určit. Kontrolní pilot se stejnou relací a původními datumy uspěl: aktivní 2 183/11 stránek, kalendář 302/2 a finální 343/2. Nejde o obecný výpadek přihlášení nebo čtení. Časový kontrakt tím ověřený není.
 
-UI rozsah od/do znamená včetně posledního místního dne; vnitřní interval je `[půlnoc prvního dne, půlnoc po posledním dni)`. Událost končící na začátku nebo začínající na konci se vyloučí; nulová událost patří jen ke dni svého okamžiku. All-day se neurčuje podle názvu: zachová se showInDiary a skutečný interval. Výsledek zůstává bestEffort, nikoli serverový snapshot. Prázdné okno dne změny času není vydávané za živé pokrytí hraničních událostí; počet vzorků se vrací zvlášť. Shoda starého date-only dotazu s UTC půlnocí je pouze pozorování daného vzorku, ne obecný důkaz jeho sémantiky.
+Oprava 0.6.1 posílá pouze doložený formát datumů YYYY-MM-DD. Místní interval Europe/Prague obalí UTC dny od zaokrouhleného začátku do zaokrouhleného konce, načte i okraje a přesné polouzavřené filtrování provede nativně. Pro pondělí 19. října je místní interval 18. října 22:00Z až 19. října 22:00Z; čtecí obálka posílá 18.–20. října. Nepovolují se nové commandy ani zápisy.
 
-Prošlo 36 nativních syntetických testů včetně převodu 19. října 2026 na 18. října 22:00Z až 19. října 22:00Z, jarního 23hodinového a podzimního 25hodinového dne, sousedních intervalů a přesných bodových hranic. Nový podepsaný build 0.6.0 je nasazený, čeká se na nové místní souhlasy, login a čtecí párování člověkem. Živá časová kalibrace zatím není doložená.
+Kalibrace porovnává výsledek s širším vzorkem, úplným aktivním seznamem, sousedními dny a filtrováním na začátku existující události. Zvlášť porovnává neobalený date-only dotaz s doloženým DAO predikátem nad UTC půlnocemi; bez shody nepovolí běžná kalendářní data. `boundaryFilterMatches` znamená přesný místní filtr nad širším čtením, nikoli odeslání časové hranice serveru. Shody jsou důkazem pro aktuální živý vzorek, nikoli garantovaným serverovým snapshotem nebo všeobecným důkazem nezdokumentované sémantiky. Platí jen do nové relace/restartu.
+
+UI rozsah od/do zahrnuje poslední místní den; vnitřní interval je `[půlnoc prvního dne, půlnoc po posledním dni)`. Dotýkající se události se vyloučí, nulová událost patří jen ke dni svého okamžiku. All-day se neurčuje podle názvu. Prázdný den změny času není živý test hraničních událostí; počet vzorků se vrací zvlášť. Syntetické testy pokrývají 23hodinový i 25hodinový den, datumovou obálku, překryvy a přesné bodové hranice. Prošlo 37 nativních testů. Živá kalibrace opravy 0.6.1 zatím čeká na nový místní souhlas a přihlášení; běžný kalendář zůstává zavřený.
 
 ## Aktuální místní ověření – Connect 0.5.0
 

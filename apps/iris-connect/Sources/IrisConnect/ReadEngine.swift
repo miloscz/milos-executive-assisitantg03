@@ -30,10 +30,11 @@ struct CalendarBoundaryEvidence: Codable {
     let verified: Bool
     let checkedAt: Date
     let timezone: String
-    let explicitUTCMatches: Bool
+    let wireFormat: String
+    let paddedWindowMatches: Bool
     let activeCoverageMatches: Bool
     let adjacentWindowsMatch: Bool
-    let exactBoundaryQueriesMatch: Bool
+    let boundaryFilterMatches: Bool
     let legacyDateOnlyMatchesUTCMidnight: Bool
     let dstChecked: Bool
     let dstMatches: Bool
@@ -218,7 +219,12 @@ final class ReadEngine: ObservableObject {
                 let (object, count) = try await transport.page(base: bound, operation: .calendar, window: window,
                     index: index, session: auth, deadline: deadline, calendarBounds: bounds)
                 bytes += count; guard bytes <= 52_428_800 else { throw ReadFailure.responseTooLarge }
-                if try pages.append(RecordPage(object, operation: .calendar, page: index)) { return pages.records }
+                if try pages.append(RecordPage(object, operation: .calendar, page: index)) {
+                    // The server sees enclosing date-only bounds; the client owns
+                    // the exact half-open interval, including DST and point events.
+                    if let bounds { return try pages.records.filter { try bounds.includes($0) } }
+                    return pages.records
+                }
             }
             throw ReadFailure.recordLimit
         }
@@ -230,17 +236,17 @@ final class ReadEngine: ObservableObject {
         }
         let tomorrow = try window(1, 1), tomorrowBounds = try CalendarInterval(window: tomorrow)
         let exact = try await raw(tomorrowBounds, window: tomorrow)
-        let explicit = Set(exact.map(\.id)) == (try tomorrowBounds.ids(wide, documentedPredicate: true))
+        let explicit = Set(exact.map(\.id)) == (try tomorrowBounds.ids(wide))
         let active = await read(.init(operation: ReadOperation.active.rawValue, fresh: true))
         guard active.complete else { throw active.incompleteReason ?? ReadFailure.transport }
         let blockingActive = active.records.filter { ["timeblock", "dayblock"].contains($0.showInDiary?.lowercased() ?? "") }
-        let activeExpected = try tomorrowBounds.ids(blockingActive, documentedPredicate: true)
+        let activeExpected = try tomorrowBounds.ids(blockingActive)
         let activeCoverage = activeExpected.isSubset(of: Set(exact.map(\.id)))
         let next = try window(2, 2), nextBounds = try CalendarInterval(window: next)
         let nextRows = try await raw(nextBounds, window: next)
         let joinedWindow = try window(1, 2), joinedBounds = try CalendarInterval(window: joinedWindow)
         let joined = try await raw(joinedBounds, window: joinedWindow)
-        let expectedNext = try nextBounds.ids(wide, documentedPredicate: true)
+        let expectedNext = try nextBounds.ids(wide)
         let adjacent = Set(exact.map(\.id)).union(nextRows.map(\.id)) == Set(joined.map(\.id))
             && Set(nextRows.map(\.id)) == expectedNext
         guard let edgeRecord = try wide.first(where: {
@@ -252,10 +258,11 @@ final class ReadEngine: ObservableObject {
         for bounds in [try CalendarInterval(lower: edge.addingTimeInterval(-1800), upper: edge),
                        try CalendarInterval(lower: edge, upper: edge.addingTimeInterval(1800))] {
             let rows = try await raw(bounds, window: wideWindow)
-            let expected = try bounds.ids(wide, documentedPredicate: true)
+            let expected = try bounds.ids(wide)
             edgeMatches = edgeMatches && Set(rows.map(\.id)) == expected
         }
-        // Observe legacy date-only behavior, without relying on it for the new adapter.
+        // Establish the UTC-midnight interpretation of the supported date() wire
+        // format against the wider sample before enabling its enclosing adapter.
         let legacyWindow = try window(1, 2), legacy = try await raw(nil, window: legacyWindow)
         let legacyBounds = try CalendarInterval(lower: CalendarInterval.instant(day(1) + "T00:00:00Z"), upper: CalendarInterval.instant(day(2) + "T00:00:00Z"))
         let legacyUTC = Set(legacy.map(\.id)) == (try legacyBounds.ids(wide, documentedPredicate: true))
@@ -265,14 +272,14 @@ final class ReadEngine: ObservableObject {
             let w = try DateWindow(request: .init(operation: "calendar.list", dateFrom: date, dateTo: date))
             let bounds = try CalendarInterval(window: w), rows = try await raw(bounds, window: w)
             dstChecked = true; dstHours = Int(bounds.upper.timeIntervalSince(bounds.lower) / 3600); dstRecords = rows.count
-            dstMatches = Set(rows.map(\.id)) == (try bounds.ids(wide, documentedPredicate: true))
+            dstMatches = Set(rows.map(\.id)) == (try bounds.ids(wide))
         }
         guard epoch == generation else { throw ReadFailure.cancelled }
         let multiDay = try wide.filter { try CalendarInterval.instant($0.endTime).timeIntervalSince(CalendarInterval.instant($0.startTime)) >= 86400 }.count
-        let verified = !exact.isEmpty && !activeExpected.isEmpty && explicit && activeCoverage && adjacent && edgeMatches && dstMatches
+        let verified = !exact.isEmpty && !activeExpected.isEmpty && explicit && activeCoverage && adjacent && edgeMatches && legacyUTC && dstMatches
         calendarVerified = verified; cache = cache.filter { !$0.key.hasPrefix(ReadOperation.calendar.rawValue) }
-        return CalendarBoundaryEvidence(verified: verified, checkedAt: Date(), timezone: "Europe/Prague", explicitUTCMatches: explicit,
-            activeCoverageMatches: activeCoverage, adjacentWindowsMatch: adjacent, exactBoundaryQueriesMatch: edgeMatches,
+        return CalendarBoundaryEvidence(verified: verified, checkedAt: Date(), timezone: "Europe/Prague", wireFormat: "dateOnlyUTCEnclosure", paddedWindowMatches: explicit,
+            activeCoverageMatches: activeCoverage, adjacentWindowsMatch: adjacent, boundaryFilterMatches: edgeMatches,
             legacyDateOnlyMatchesUTCMidnight: legacyUTC, dstChecked: dstChecked, dstMatches: dstMatches, dstDayHours: dstHours, dstRecords: dstRecords,
             dayBlockSamples: wide.filter { $0.showInDiary?.lowercased() == "dayblock" }.count, multiDaySamples: multiDay,
             scope: "self; documented DAO predicate; live sample; bestEffort; approval iris-connect-read-v1")

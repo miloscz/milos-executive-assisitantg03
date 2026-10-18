@@ -2,7 +2,7 @@ import XCTest
 @testable import ConnectCore
 
 final class CalendarIntervalTests: XCTestCase {
-    func testUTCQueryPreservesApprovedCommandAndFixedDiagnosticHasNoArguments() throws {
+    func testDateOnlyQueryEnclosesPragueDayAndPreservesApprovedCommand() throws {
         let window = try DateWindow(request: .init(operation: "calendar.list", dateFrom: "2026-10-19", dateTo: "2026-10-19"))
         let bounds = try CalendarInterval(window: window)
         let base = URL(string: "https://uuapp.plus4u.net/uu-myterritory-dwg01/" + String(repeating: "a", count: 32))!
@@ -10,11 +10,19 @@ final class CalendarIntervalTests: XCTestCase {
         let values = URLComponents(url: url, resolvingAgainstBaseURL: false)!.queryItems!
         XCTAssertEqual(url.lastPathComponent, "listMyDiaryRecords")
         XCTAssertEqual(Set(values.map(\.name)), ["pageInfo", "dateFrom", "dateTo"])
-        XCTAssertEqual(values.first { $0.name == "dateFrom" }?.value, "2026-10-18T22:00:00.000Z")
-        XCTAssertEqual(values.first { $0.name == "dateTo" }?.value, "2026-10-19T22:00:00.000Z")
+        XCTAssertEqual(values.first { $0.name == "dateFrom" }?.value, "2026-10-18")
+        XCTAssertEqual(values.first { $0.name == "dateTo" }?.value, "2026-10-20")
         XCTAssertNoThrow(try ReadRequest.parse(Data(#"{"operation":"diagnostics.calendarBoundaries"}"#.utf8)))
         XCTAssertThrowsError(try ReadRequest.parse(Data(#"{"operation":"diagnostics.calendarBoundaries","dateFrom":"2026-10-19"}"#.utf8)))
         XCTAssertThrowsError(try ReadPolicy.url(base: base, operation: .active, window: nil, page: 0, calendarBounds: bounds))
+    }
+    func testDateEnclosureAcrossDSTAndExactUTCMidnight() throws {
+        for (day, from, to) in [("2026-03-29", "2026-03-28", "2026-03-30"), ("2026-10-25", "2026-10-24", "2026-10-26")] {
+            let range = try CalendarInterval(window: DateWindow(request: .init(operation: "calendar.list", dateFrom: day, dateTo: day)))
+            XCTAssertEqual(range.enclosingDates.from, from); XCTAssertEqual(range.enclosingDates.to, to)
+        }
+        let range = try CalendarInterval(lower: CalendarInterval.instant("2026-10-19T00:00:00Z"), upper: CalendarInterval.instant("2026-10-20T00:00:00Z"))
+        XCTAssertEqual(range.enclosingDates.from, "2026-10-19"); XCTAssertEqual(range.enclosingDates.to, "2026-10-20")
     }
     func testPragueMidnightsAndBothDSTChanges() throws {
         for (day, lower, upper, hours) in [

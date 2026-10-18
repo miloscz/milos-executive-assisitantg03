@@ -109,7 +109,8 @@ public enum ReadPolicy {
         var items: [URLQueryItem] = [.init(name: "pageInfo", value: "{\"pageIndex\":\(page),\"pageSize\":200}")]
         guard calendarBounds == nil || operation == .calendar else { throw ReadFailure.policyDenied }
         if let bounds = calendarBounds {
-            items += [.init(name: "dateFrom", value: CalendarInterval.wire(bounds.lower)), .init(name: "dateTo", value: CalendarInterval.wire(bounds.upper))]
+            let dates = bounds.enclosingDates
+            items += [.init(name: "dateFrom", value: dates.from), .init(name: "dateTo", value: dates.to)]
         } else if let window { items += [.init(name: "dateFrom", value: window.dateFrom), .init(name: "dateTo", value: window.dateTo)] }
         if operation == .active { items.append(.init(name: "sorterList", value: "[{\"key\":\"startTime\",\"ascending\":false}]")) }
         c.queryItems = items

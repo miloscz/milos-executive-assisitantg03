@@ -30,6 +30,16 @@ public struct CalendarInterval: Codable, Equatable {
         let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         f.timeZone = TimeZone(secondsFromGMT: 0); return f.string(from: date)
     }
+    /// The documented command accepts date(), not a timestamp. Enclose the
+    /// requested instants in UTC dates; filter the overfetch locally afterwards.
+    public var enclosingDates: (from: String, to: String) {
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let first = calendar.startOfDay(for: lower), last = calendar.startOfDay(for: upper)
+        let ceiling = last == upper ? last : calendar.date(byAdding: .day, value: 1, to: last)!
+        let f = DateFormatter(); f.calendar = calendar; f.timeZone = calendar.timeZone
+        f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"
+        return (f.string(from: first), f.string(from: ceiling))
+    }
     public func includes(_ record: NormalizedRecord, documentedPredicate: Bool = false) throws -> Bool {
         let start = try Self.instant(record.startTime), end = try Self.instant(record.endTime)
         guard end >= start else { throw ReadFailure.schemaMismatch }
