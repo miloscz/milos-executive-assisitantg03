@@ -38,7 +38,7 @@ public struct ReadRequest: Codable {
             if op == .active && (request.dateFrom != nil || request.dateTo != nil) { throw ReadFailure.policyDenied }
             if op != .active { _ = try DateWindow(request: request) }
         } else {
-            guard ["status", "diagnostics.verifyReads"].contains(request.operation),
+            guard ["status", "diagnostics.verifyReads", "diagnostics.calendarBoundaries"].contains(request.operation),
                   request.dateFrom == nil, request.dateTo == nil, request.fresh == nil else { throw ReadFailure.policyDenied }
         }
         return request
@@ -102,12 +102,15 @@ public enum ReadPolicy {
         return c.url!
     }
 
-    public static func url(base: URL, operation: ReadOperation, window: DateWindow?, page: Int) throws -> URL {
+    public static func url(base: URL, operation: ReadOperation, window: DateWindow?, page: Int, calendarBounds: CalendarInterval? = nil) throws -> URL {
         let bound = try workspace(base.absoluteString)
         guard (0..<50).contains(page), (operation == .active) == (window == nil) else { throw ReadFailure.policyDenied }
         var c = URLComponents(url: bound.appendingPathComponent(operation.command), resolvingAgainstBaseURL: false)!
         var items: [URLQueryItem] = [.init(name: "pageInfo", value: "{\"pageIndex\":\(page),\"pageSize\":200}")]
-        if let window { items += [.init(name: "dateFrom", value: window.dateFrom), .init(name: "dateTo", value: window.dateTo)] }
+        guard calendarBounds == nil || operation == .calendar else { throw ReadFailure.policyDenied }
+        if let bounds = calendarBounds {
+            items += [.init(name: "dateFrom", value: CalendarInterval.wire(bounds.lower)), .init(name: "dateTo", value: CalendarInterval.wire(bounds.upper))]
+        } else if let window { items += [.init(name: "dateFrom", value: window.dateFrom), .init(name: "dateTo", value: window.dateTo)] }
         if operation == .active { items.append(.init(name: "sorterList", value: "[{\"key\":\"startTime\",\"ascending\":false}]")) }
         c.queryItems = items
         guard let url = c.url else { throw ReadFailure.policyDenied }; return url

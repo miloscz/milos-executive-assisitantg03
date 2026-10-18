@@ -1,5 +1,18 @@
 # Ověření čtecího rozhraní Iris Connect
 
+## Ověření časových hranic – implementace 0.6.0
+
+Primární dokumentace dohledaná přes uuKnowledgeBase:
+
+- [uuDwRecord/listMyDiaryRecords](https://uuapp.plus4u.net/uu-bookkit-maing01/07bedd5d4f6b4cb49a4193382a8063e6/book/page?code=99057852): GET, dva nezávislé seznamy aktivních a finálních záznamů, validátory date(), výběr DAO listBlockingByDateRange, módy timeBlock/dayBlock.
+- [uuDwrActive DAO](https://uuapp.plus4u.net/uu-bookkit-maing01/07bedd5d4f6b4cb49a4193382a8063e6/book/page?code=97936972): doslovný predikát `F < f && T > f || F < t && T > t || F >= f && T <= t`, kde F/T jsou startTime/endTime záznamu a f/t hranice dotazu. Dokumentace používá i zápis DayBlock; adaptér rozpoznává oba zápisy bez rozlišení velikosti písmen.
+
+Tyto zdroje neprokazují interpretaci datumového řetězce, zónu, převod v ABL nebo chování přes DST. Druhé cílené hledání tuto mezeru nepotvrdilo jako vyřešenou. Nový adaptér proto používá explicitní ISO UTC okamžiky pro místní Europe/Prague půlnoci; nativní read-only kalibrace musí jejich přijetí a překryv ověřit proti širšímu oknu, úplnému aktivnímu seznamu a dvěma dotazům s přesnou hranicí existující události. Žádné nové uuCommandy, cíle nebo zápisy se nepovolují. Běžný klient zůstává zablokovaný do úspěchu kalibrace daného běhu.
+
+UI rozsah od/do znamená včetně posledního místního dne; vnitřní interval je `[půlnoc prvního dne, půlnoc po posledním dni)`. Událost končící na začátku nebo začínající na konci se vyloučí; nulová událost patří jen ke dni svého okamžiku. All-day se neurčuje podle názvu: zachová se showInDiary a skutečný interval. Výsledek zůstává bestEffort, nikoli serverový snapshot. Prázdné okno dne změny času není vydávané za živé pokrytí hraničních událostí; počet vzorků se vrací zvlášť. Shoda starého date-only dotazu s UTC půlnocí je pouze pozorování daného vzorku, ne obecný důkaz jeho sémantiky.
+
+Prošlo 36 nativních syntetických testů včetně převodu 19. října 2026 na 18. října 22:00Z až 19. října 22:00Z, jarního 23hodinového a podzimního 25hodinového dne, sousedních intervalů a přesných bodových hranic. Nový podepsaný build 0.6.0 je nasazený, čeká se na nové místní souhlasy, login a čtecí párování člověkem. Živá časová kalibrace zatím není doložená.
+
 ## Aktuální místní ověření – Connect 0.5.0
 
 18. října 2026 v 18:28 Europe/Prague po úspěšném přihlášení přes Aidu a Iris Local Miloš potvrdil nalezení vlastního prostoru, čtecí párování a úspěch nového nativního pilotu. Validovaný sanitizovaný záznam i přímé `IrisRead status` shodně potvrdily ok=true, paired=true a loginRequired=false. Čas aktualizace záznamu byl 18:28:13 Europe/Prague; nejde o opětovné použití starého výsledku.

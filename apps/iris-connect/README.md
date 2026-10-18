@@ -1,5 +1,9 @@
 # Iris Connect místní prototyp
 
+**0.6.0 – čtecí kalibrace kalendáře:** pevný příkaz `IrisRead diagnostics.calendarBoundaries` provede pouze schválená čtení. Porovná explicitní UTC hranice pražských dnů, širší okno, aktivní blokující záznamy bez časového filtru, sousední dny, dotazy končící/začínající přesně na existující události a dostupné okno změny času. Vydá jen počty a pevné příznaky. Nezapisuje testovací události a nevydává neověřená kalendářní data běžnému klientovi. Teprve po shodě všech povinných kontrol pro tento běh povolí běžné `calendar.list`; nový login a restart tuto kalibraci ruší. Veřejný interval datumů je včetně obou dnů, interní UTC dotaz je od místní půlnoci do půlnoci po posledním dni a vrácené záznamy se filtrují na polouzavřený interval. Syntetické testy pokrývají 23hodinový a 25hodinový den, nulové události a překryvy. Výsledek živé kalibrace se eviduje odděleně od úspěšného sestavení.
+
+Build `scripts/build-app.sh --stage` připraví nový podepsaný bundle v jedinečné oddělené složce build/staging.*, aniž přepíše běžící aplikaci. K aktivaci je nutné bezpečně ukončit starou verzi a po změně podpisu obnovit místní souhlasy. Žádný token nebo souhlas s MFA se nepřenáší.
+
 Nativní aplikace pro tento Mac. Přijímá AC1 a AC2 pouze v soukromém okně, ukládá je do macOS Keychain a doplňuje je do oficiálního formuláře +4U. MFA zpracovává oficiální stránka; potvrzuje ji uživatel. Verze 0.2 přidává omezené místní čtecí rozhraní pro spárovaného klienta. Neobsahuje obecnou HTTP proxy ani zápisy do úkolů a kalendáře.
 
 Základní živé přihlášení, uživatelské potvrzení MFA, podpis a claims tokenu a následné čtení identity byly úspěšně ověřeny 18. října 2026. Agent při ověřování četl jen sanitizovaný stav, nikoli kódy nebo token. Podrobnosti jsou v [záznamu ověření](../../docs/iris-connect-verification.md).

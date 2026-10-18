@@ -4,7 +4,13 @@ TASK_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TASK_REPO="$(cd "$TASK_ROOT/../.." && pwd)"
 TASK_APP="$TASK_REPO/build/Iris Connect.app"
 # Refuse to replace a bundle that may be displaying credentials or running MFA.
-if pgrep -x IrisConnect >/dev/null; then
+if [ "${1:-}" = "--stage" ]; then
+  mkdir -p "$TASK_REPO/build"
+  TASK_STAGE="$(mktemp -d "$TASK_REPO/build/staging.XXXXXX")"
+  TASK_APP="$TASK_STAGE/Iris Connect.app"
+elif [ "$#" -ne 0 ]; then
+  exit 1
+elif pgrep -x IrisConnect >/dev/null; then
   printf '%s\n' 'Iris Connect běží. Před sestavením aplikaci bezpečně ukonči.' >&2
   exit 1
 fi
@@ -31,8 +37,8 @@ cat > "$TASK_APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleDisplayName</key><string>Iris Connect</string>
 <key>CFBundleExecutable</key><string>IrisConnect</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.5.0</string>
-<key>CFBundleVersion</key><string>8</string>
+<key>CFBundleShortVersionString</key><string>0.6.0</string>
+<key>CFBundleVersion</key><string>9</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSPrincipalClass</key><string>NSApplication</string>

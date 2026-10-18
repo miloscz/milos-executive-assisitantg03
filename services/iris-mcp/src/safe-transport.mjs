@@ -1,5 +1,6 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { outputSchema } from './native-control.mjs';
+import {briefingOutputSchema} from './briefing.mjs';
 
 export function sanitizeMessage(message) {
   if (message.error) {
@@ -9,7 +10,8 @@ export function sanitizeMessage(message) {
   }
   if (message.result?.isError || message.result?.structuredContent) {
     let value;
-    try { value = outputSchema.parse(message.result.structuredContent); }
+    try { value = message.result.structuredContent?.briefing || ['briefingUnavailable','briefingNotPrepared'].includes(message.result.structuredContent?.error)
+      ? briefingOutputSchema.parse(message.result.structuredContent) : outputSchema.parse(message.result.structuredContent); }
     catch { value = { ok: false, error: 'invalidRequest' }; }
     return { jsonrpc: '2.0', id: message.id, result: {
       isError: !value.ok, structuredContent: value, content: [{ type: 'text', text: JSON.stringify(value) }]

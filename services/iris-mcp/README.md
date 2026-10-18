@@ -1,5 +1,9 @@
 # Omezené MCP Iris pro Aidu
 
+**Verze 0.2.0:** na požadavek prvního ranního briefingu přibyl pátý nástroj `iris_get_morning_briefing` bez parametrů. Čte jediný připravený soubor `.iris-runtime/morning-briefing.json`, nikoli zdrojové snapshoty nebo libovolné cesty. Neprovádí +4U volání, nevyvolává přípravu ani MFA, nespouští nový program. Kernel sandbox povoluje čtení pouze této konkrétní položky vedle dosavadního kódu/helperu/socketu; zbytek uživatelských dat, Internet a obecné procesy zůstávají zakázané. Výstup kontroluje vlastníka, práva, symlinky, velikost do 24 KiB a striktní schéma bez neznámých polí či přihlašovacích hodnot. Stáří nad 30 minut se označí `stale`; neúplný kalendář `activeRecordsOnly`. [Příprava a limity](../iris-core/README.md). Historické záznamy o čtyřech nástrojích níže popisují verzi 0.1.0.
+
+Po restartu serveru se musí obnovit metadata soukromého pluginu: ChatGPT → Plugins → Iris Local → Refresh a ověřit pět nástrojů. [Oficiální postup OpenAI](https://developers.openai.com/plugins/deploy/connect-chatgpt#refresh-metadata). Následuje skutečné volání `iris_get_morning_briefing` z pluginu a přímo Aidou; úspěch místního stdio sám nedokládá předání Aidou. API klíč ani +4U údaje se při Refresh nezadávají.
+
 Implementace 0.1.0 na tomto Macu. MCP server používá oficiální SDK, stdio a podepsaného místního IrisControl. Neobsahuje HTTP server ani přímého klienta +4U. Nativní Iris Connect zůstává jediným vykonavatelem autentizace a schválených +4U operací.
 
 Aktuálně se na pokyn Miloše nejprve obnovuje provoz na vývojovém Macu a přenos na Mini se dokončí později. [Stav obou hostů](../../docs/mac-mini-deployment.md). Výstup stavu nově připouští pouze booleovský `backgroundLoginEnabled`; starší nativní build se považuje za nepovolený. Změna nepřidává žádný nástroj, síťový cíl ani datový přístup. Launcher vybírá Node pouze ze dvou pevných instalačních umístění.

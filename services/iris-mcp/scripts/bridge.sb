@@ -7,6 +7,8 @@
 (deny file-read* file-write* (subpath (param "USER_HOME")))
 (allow file-read* (subpath (param "SERVICE_ROOT")))
 (allow file-read* (subpath (param "APP_BUNDLE")))
+; One prebuilt bounded business artifact only; never a directory or arbitrary file tool.
+(allow file-read-data (literal (param "BRIEFING_FILE")))
 (allow file-read-metadata (subpath (param "USER_HOME")))
 (allow file-read* file-write* (literal (param "AUTH_SOCKET")))
 (allow file-read-metadata (literal (param "AUTH_DIRECTORY")))

@@ -71,7 +71,7 @@ async function fixture(t, handler) {
 test('real SDK discovery exposes only bounded tools and no resources or sampling', async t => {
   const client = await fixture(t, async () => ({ok:false,error:'unavailable'}));
   const tools = (await client.listTools()).tools;
-  assert.deepEqual(tools.map(x=>x.name).sort(),Object.keys(operations).sort());
+  assert.deepEqual(tools.map(x=>x.name).sort(),[...Object.keys(operations),'iris_get_morning_briefing'].sort());
   for (const tool of tools) {
     assert.equal(tool.inputSchema.additionalProperties, false);
     assert.ok(tool.outputSchema);

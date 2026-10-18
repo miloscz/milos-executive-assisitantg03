@@ -9,7 +9,7 @@ const transport=new StdioClientTransport({command:'/bin/bash',args:[launcher],st
 try {
   await client.connect(transport);
   const names=(await client.listTools()).tools.map(x=>x.name).sort();
-  const expected=['iris_confirm_notice_sent','iris_get_access_status','iris_prepare_login','iris_start_login'];
+  const expected=['iris_confirm_notice_sent','iris_get_access_status','iris_get_morning_briefing','iris_prepare_login','iris_start_login'];
   if(JSON.stringify(names)!==JSON.stringify(expected)) throw new Error('unexpected_tools');
   const result=await client.callTool({name:'iris_get_access_status',arguments:{}});
   const status=outputSchema.parse(result.structuredContent);

@@ -17,12 +17,15 @@ const sandboxArgs=[
  '-D',`USER_HOME=${homedir()}`,'-D',`SERVICE_ROOT=${service}`, '-D',`APP_BUNDLE=${root}build/Iris Connect.app`,
  '-D',`AUTH_SOCKET=${homedir()}/Library/Application Support/Iris Connect/auth.sock`,
  '-D',`AUTH_DIRECTORY=${homedir()}/Library/Application Support/Iris Connect`,
+ '-D',`BRIEFING_FILE=${root}.iris-runtime/morning-briefing.json`,
  '-D',`HELPER=${root}build/Iris Connect.app/Contents/MacOS/IrisControl`,
  '-D',`NODE_BINARY=${process.execPath}`,'-f',service+'/scripts/bridge.sb',process.execPath];
 
 test('OS sandbox denies network, home file contents and arbitrary process execution',async t=>{
  const outside=root+'build/iris-mcp-synthetic-canary.txt';
  await writeFile(outside,CANARY);t.after(()=>unlink(outside));
+ const briefingFixture=root+'build/iris-mcp-briefing-fixture.json';
+ await writeFile(briefingFixture,'{"synthetic":true}');t.after(()=>unlink(briefingFixture));
  const listener=net.createServer(socket=>socket.destroy());
  await new Promise(r=>listener.listen(0,'127.0.0.1',r));t.after(()=>new Promise(r=>listener.close(r)));
  const port=listener.address().port;
@@ -30,17 +33,20 @@ test('OS sandbox denies network, home file contents and arbitrary process execut
  const fs=require('node:fs'),net=require('node:net'),cp=require('node:child_process');
  const out={};
  try{fs.readFileSync(${JSON.stringify(outside)});out.file='allowed'}catch(e){out.file=e.code}
+ try{out.briefing=JSON.parse(fs.readFileSync(${JSON.stringify(briefingFixture)},'utf8')).synthetic===true}catch(e){out.briefing=e.code}
  const child=cp.spawnSync('/bin/echo',['synthetic']);out.exec=child.error?.code??'allowed';
  const s=net.connect({host:'127.0.0.1',port:${port}});
  s.on('connect',()=>{out.network='allowed';s.destroy()});
  s.on('error',e=>{out.network=e.code});
  s.on('close',()=>console.log(JSON.stringify(out)));
  `;
- const {stdout}=await run('/usr/bin/sandbox-exec',[...sandboxArgs,'-e',code],{timeout:8000});
+ const args=sandboxArgs.map(x=>x.startsWith('BRIEFING_FILE=')?`BRIEFING_FILE=${briefingFixture}`:x);
+ const {stdout}=await run('/usr/bin/sandbox-exec',[...args,'-e',code],{timeout:8000});
  const result=JSON.parse(stdout);
  assert.ok(['EPERM','EACCES'].includes(result.file));
  assert.ok(['EPERM','EACCES'].includes(result.exec));
  assert.ok(['EPERM','EACCES'].includes(result.network));
+ assert.equal(result.briefing,true);
  assert.ok(!stdout.includes(CANARY));
 });
 
@@ -57,7 +63,7 @@ test('wire validation errors contain no untrusted method, parameter or secret te
   catch(e){assert.ok(!String(e).includes(CANARY));}
  }
  const tools=(await client.listTools()).tools;
- assert.equal(tools.length,4);
+ assert.equal(tools.length,5);
 });
 
 test('oversized unterminated input is closed without echoing it',async()=>{

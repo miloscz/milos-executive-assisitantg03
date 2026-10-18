@@ -52,8 +52,8 @@ actor ReadTransport {
     }
 
     func page(base: URL, operation: ReadOperation, window: DateWindow?, index: Int,
-              session: VerifiedSession, deadline: Date) async throws -> ([String: Any], Int) {
-        try await get(ReadPolicy.url(base: base, operation: operation, window: window, page: index), session: session, deadline: deadline)
+              session: VerifiedSession, deadline: Date, calendarBounds: CalendarInterval? = nil) async throws -> ([String: Any], Int) {
+        try await get(ReadPolicy.url(base: base, operation: operation, window: window, page: index, calendarBounds: calendarBounds), session: session, deadline: deadline)
     }
 
     private func get(_ url: URL, session auth: VerifiedSession, deadline: Date) async throws -> ([String: Any], Int) {

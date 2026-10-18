@@ -1,5 +1,7 @@
 # Iris třetí generace
 
+**Probíhající krok:** commit dosavadního stavu `fadc476` je hotový. Na tomto Macu je nyní nasazený podepsaný Connect 0.6.0 s pevnou čtecí kalibrací časových hranic a MCP server 0.2.0 s pátým nástrojem pro připravený briefing. První soukromý náhled na pondělí 19. října je vytvořený a prošel skutečným sandboxovaným stdio čtením; do ověření kalendáře je označený jako částečný. Nová živá kalibrace a předání Aidou ještě čekají na místní souhlasy, login, čtecí párování a obnovení metadat pluginu. [Aktuální implementace](services/iris-core/README.md), [postup](docs/implementation-plan.md).
+
 Osobní pracovní systém Miloše Vodrážky. Iris průběžně připravuje řešení úkolů, podklady k rozhodnutí a přípravy na schůzky. Aida (AI Dialogue Assistant), komunikační agentka postavená na platformě Dot, slouží jako hlavní partnerka pro rozhovor, zejména při ranní cestě autem. Znalosti, stav práce a procesní know-how zůstávají v systému Iris.
 
 Hlavním cílem je začínat důležitou práci včas a vyhradit prostor pro to, co musí rozhodnout nebo udělat Miloš. Hlavním zdrojem závazků jsou úkoly a schůzky v +4U. Informace z dalších zdrojů nesmějí automaticky přeplňovat inbox.
