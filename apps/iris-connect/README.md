@@ -141,3 +141,33 @@ Před živým pilotem 0.7.0: jednou zamknout/odemknout Mac, místně ověřit p�
 ### Ověřená 0.7.1
 
 Oprava přijímá chybějící echo OID v odpovědi Elementary stránky, ale odmítá přítomné rozporné OID. Kalibrace vybírá obsazený den ze společného vzorku místo pevného zítřka, takže prázdná sobota sama nezablokuje páteční přípravu. Prošlo 46 ConnectCore a 11 nativních testů. Po novém místním souhlasu člověka pracovní fronta navázala na čekající úlohu. Všechny čtyři kontrakty ManagementKit prošly živým pilotem; Elementary meeting dál vrací schemaMismatch a jeho texty zůstávají blokované. Není prokázané, že příčinou je právě echo nebo tvar stránky; další diagnostika nesmí uvolnit neznámé serverové warnings. Žádný další build se během uživatelského přihlášení nenasazoval.
+
+
+### Diagnostika Elementary Management – 0.7.2
+
+Nový build nemění povolené commandy nebo jejich parametry a neignoruje serverové warnings. Pro Elementary rozlišuje validaci identifikátorů, odpověď meeting/load, odpověď meeting/page/load a převod sekcí. Pevná diagnostika navíc rozliší contentType, jsonObject, serverWarnings a targetIdentifiers. Vracet může jen booleany a známé názvy schválených parametrů z enumu; nikdy zprávy serveru, neznámé názvy, hodnoty nebo tělo odpovědi. Neplatná mapa warnings se odmítá. Diagnostická chyba se neopakuje jako síťový timeout.
+
+Prošlo 46 Core + 14 Native syntetických testů, včetně odmítnutí serverových warnings a nezpřístupnění jejich soukromých hodnot. Oddělený hardened build byl ověřený a nainstalovaný až po kontrole busy=false a ukončení aplikace; předchozí 0.7.1 zůstala v build/backups. Čeká se na nový místní souhlas člověka a živý pilot; samotné nasazení zatím nedokazuje opravu čtení schůzek.
+
+
+### Oprava aliasů Elementary Management – 0.7.4
+
+Jednorázově schválený pilot zjistil technický název unsupportedKeys na meeting/page/load. Rozšířený export názvů je odstraněný ze zdrojů i buildu. Nadále se nevracejí zprávy, hodnoty nebo surové odpovědi.
+
+Nativní pilot rozpozná přesnou strukturu standardního varování unsupportedKeys (také bez prefixu namespace). Pouze v pilotu smí ověřit druhý, užší GET stejného commandu: odstraní výhradně explicitně odmítnuté aliasy z již schválené šestice, zachová alespoň jednu přesnou vazbu na schůzku, stránku a BID, stejné identifikátory i cíl. Nejde o povolení jiného commandu, nové query položky nebo rozšíření čtecí politiky. Obsah první odpovědi se nepoužije. Druhá odpověď musí projít celou kontrolou a nesmí obsahovat varování; neprovádí se další vyjednávání ve smyčce. Neznámá pole, jiná varování, error severity nebo ztráta některé vazby zůstávají chybou.
+
+Ověřená užší sada se drží jen v paměti pro právě ověřenou identitu a expiraci relace; běžné čtení ji může použít, ale samo nic nekalibruje. Nová relace ji nezdědí. Oba požadavky započítávají původní limity, rozpočet a frekvenci. Prošlo 46 Core a 17 Native syntetických testů včetně odmítnutí nebezpečného zúžení, maximálně jednoho kalibračního kroku a oddělení nové relace. Živý pilot opravné verze ještě čeká.
+
+
+### Kompaktní odpověď Elementary – 0.7.5
+
+Živý pilot 0.7.4 po místním přihlášení dál odmítl odpověď `elementaryPageRequest/serverWarnings`; ManagementKit meeting/document/keyTask/request prošly. Standardní struktura `unsupportedKeys` tedy sama opravu nedoložila.
+
+0.7.5 rozpoznává i omezené kompaktní seznamy/mapy známých aliasů. Prázdný seznam či prázdná mapa pod přesným `unsupportedKeys` v EM odpovědi znamená prázdná metadata, nikoli skutečné varování. Jakákoli jiná položka, neznámý parametr, zpráva místo struktury nebo závažnost error zůstává odmítnutá. Pokud server výslovně odmítne všechny aliasy stránky a BID, pilot smí ověřit pouze hlavní stránku stejné schůzky; vrácené OID i BID pak musejí přesně odpovídat předchozímu detailu. Bez tohoto důkazu se text nevydá.
+
+Pevná diagnostika může navíc vrátit 12 omezených počtů tvarů kontejnerů (`warningShape`), nikoli jejich obsah nebo libovolné názvy. Dočasný export technických názvů zůstává odstraněný. Prošlo 46 Core + 20 Native syntetických testů. Podepsaný 0.7.5 je nasazený se zachovanou zálohou 0.7.4; schválené politiky jsou beze změny. Živý důkaz nové opravy a obnova briefingu čekají na místní souhlasy pro tento podpis.
+
+
+### Dokumentovaný seznam odmítnutých klíčů – 0.7.6
+
+0.7.5 živě neprošel: pevná diagnostika ukázala objekt paramMap bez dosud podporovaných kontejnerů. Lokální dokumentace uuAppServer (`errors-and-warnings.md`, část uuAppErrorMap) uvádí paramMap.unsupportedKeyList. 0.7.6 rozpoznává tento dokumentovaný seznam při zachování stejného omezení aliasů, vazeb a jednorázového pilotního zúžení. Neznámé parametry nebo error severity zůstávají chybou. Prošlo 66 syntetických testů; živý důkaz 0.7.6 zatím chybí.

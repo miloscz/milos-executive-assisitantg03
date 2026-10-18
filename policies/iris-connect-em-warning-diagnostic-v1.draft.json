@@ -1,0 +1,26 @@
+{
+  "policyId": "iris-connect-em-warning-diagnostic-v1",
+  "kind": "temporaryDiagnosticException",
+  "status": "pendingApproval",
+  "createdOn": "2026-10-18",
+  "machine": "currentMacOnly",
+  "operation": "diagnostics.sources",
+  "scope": "First native-selected own Elementary meeting page, using existing approved read commands only",
+  "output": "At most four terminal technical warning identifiers from uuAppErrorMap keys; no full key prefix, messages, parameters, map values or source content",
+  "identifierValidation": "Final path segment, 3..64 ASCII letters only; reject names containing token, secret, password, authorization, cookie, accesscode, bearer or credential, case-insensitive",
+  "forbidden": [
+    "AC1",
+    "AC2",
+    "user tokens",
+    "Keychain values",
+    "authentication responses",
+    "HTTP headers",
+    "warning messages",
+    "warning parameters",
+    "page body",
+    "raw response export",
+    "MCP exposure"
+  ],
+  "activation": "No export before explicit human approval; pilot-only flag; no caller URL or command; at most one eligible failure per pilot invocation",
+  "removal": "Remove terminal-name export from the production correction once the warning is identified; no changes to Aida access or the read allowlist"
+}

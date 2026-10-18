@@ -29,13 +29,14 @@ public struct SourceTarget: Equatable {
     public func detailURL() -> URL {
         url(elementary ? "meeting/load" : "ai/ecc/document/getMetadata", [(elementary ? "id" : "oid", oid)])
     }
-    public func contentURL(page: String, bid: String? = nil) throws -> URL {
+    public func contentURL(page: String, bid: String? = nil, omitting: Set<String> = []) throws -> URL {
         guard SourcePolicy.hex(page, length: 24) || (elementary && SourcePolicy.hex(page, length: 32)) else { throw ReadFailure.schemaMismatch }
         if elementary {
             guard let bid, SourcePolicy.hex(bid, length: 24) || SourcePolicy.hex(bid, length: 32) else { throw ReadFailure.schemaMismatch }
-            return url("meeting/page/load", [("meetingId",oid),("id",oid),("uuEccPage.oid",page),("uuEccPage.bid",bid),("oid",page),("bid",bid)])
+            guard omitting.isEmpty || SourcePolicy.validElementaryOmissions(omitting) else { throw ReadFailure.policyDenied }
+            return url("meeting/page/load", [("meetingId",oid),("id",oid),("uuEccPage.oid",page),("uuEccPage.bid",bid),("oid",page),("bid",bid)].filter { !omitting.contains($0.0) })
         }
-        guard bid == nil else { throw ReadFailure.policyDenied }
+        guard bid == nil, omitting.isEmpty else { throw ReadFailure.policyDenied }
         return url("ai/ecc/panel/getContent", [("oid",oid),("pageOid",page),("maxCharsPerSection","20000"),("maxTotalChars","80000")])
     }
     private func url(_ command: String, _ values: [(String,String)]) -> URL {
@@ -47,6 +48,17 @@ public struct SourceTarget: Equatable {
 public enum SourcePolicy {
     public static let id = "iris-connect-briefing-sources-v1"
     public static let approvedSHA256 = "85f464e2bf73f5435ef818ec0c98ae65697ea7ab35fc344ef9450d2d16c345e6"
+    public static func validElementaryOmissions(_ names:Set<String>) -> Bool {
+        let groups:[Set<String>] = [["meetingId","id"],["uuEccPage.oid","oid"],["uuEccPage.bid","bid"]]
+        guard !names.isEmpty, names.isSubset(of:groups.reduce(into:Set<String>()) { $0.formUnion($1) }),
+              !groups[0].subtracting(names).isEmpty else { return false }
+        // A main-page-only endpoint may reject all explicit page aliases. In
+        // that case both identities must instead be proved by the response.
+        return groups.dropFirst().allSatisfy { !$0.subtracting(names).isEmpty } || elementaryMainPageOnly(names)
+    }
+    public static func elementaryMainPageOnly(_ names:Set<String>) -> Bool {
+        Set(["uuEccPage.oid","oid","uuEccPage.bid","bid"]).isSubset(of:names)
+    }
     public static func hex(_ text: String, length: Int) -> Bool {
         text.range(of: "\\A[0-9a-f]{\(length)}\\z", options: .regularExpression) != nil
     }

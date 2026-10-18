@@ -27,11 +27,79 @@ struct SourceCheck: Codable {
     let reason: ReadFailure?
     var stage: SourceStage? = nil
     var shape: [Bool]? = nil
+    var issue: SourceIssue? = nil
+    var parameterNames: [SourceParameter]? = nil
+    var warningShape: [Int]? = nil
 }
-enum SourceStage: String, Codable { case elementaryDetail, elementaryPage, elementarySections }
+enum SourceStage: String, Codable { case elementaryDetail, elementaryPage, elementaryPageIdentity, elementarySections, elementaryTarget, elementaryDetailRequest, elementaryPageRequest }
+enum SourceIssue: String, Codable { case targetIdentifiers, contentType, jsonObject, serverWarnings }
+enum SourceParameter: String, Codable, CaseIterable { case meetingId, id, pageOID = "uuEccPage.oid", pageBID = "uuEccPage.bid", oid, bid }
 struct SourceShapeFailure: Error {
     let stage: SourceStage
     let flags: [Bool]
+    var issue: SourceIssue? = nil
+    var parameterNames: [SourceParameter]? = nil
+    var warningShape: [Int]? = nil
+
+    static func onlyEmptyUnsupportedKeys(_ map:[String:Any]) -> Bool {
+        !map.isEmpty && map.count<=16 && map.allSatisfy { code,value in
+            guard code == "unsupportedKeys" || code.hasSuffix("/unsupportedKeys") else { return false }
+            if let list=value as? [Any] { return list.isEmpty }
+            if let keys=value as? [String:Any] { return keys.isEmpty }
+            return false
+        }
+    }
+
+    /// Classify only fixed protocol facts. Warning messages, map values and
+    /// unknown parameter names are never exported, even when validation fails.
+    static func warnings(_ map: [String:Any], stage: SourceStage) -> SourceShapeFailure {
+        guard map.count<=16 else { return .init(stage:stage,flags:[true,true,false,false],issue:.serverWarnings) }
+        var parameters = Set<SourceParameter>(), onlyUnsupported = !map.isEmpty, knownNames = true
+        // Counts only: recognized codes, objects, arrays, standard key maps,
+        // compact key maps, unrecognized structures, then six fixed container
+        // counts. No arbitrary names or values.
+        var shape=Array(repeating:0,count:12)
+        func parameter(_ key:String) -> [SourceParameter]? {
+            let path=key.hasPrefix("$.") ? String(key.dropFirst(2)) : key
+            if path == "uuEccPage" { return [.pageOID,.pageBID] }
+            return SourceParameter(rawValue:path).map { [$0] }
+        }
+        for (code,value) in map {
+            guard code == "unsupportedKeys" || code.hasSuffix("/unsupportedKeys") else { onlyUnsupported=false;shape[5]+=1;continue }
+            shape[0]+=1
+            let names:[String]
+            if let list=value as? [String] {
+                shape[2]+=1;names=list
+            } else if let warning=value as? [String:Any] {
+                shape[1]+=1
+                let info=warning["paramMap"] as? [String:Any]
+                if info != nil { shape[6]+=1 }
+                if info?["unsupportedKeyMap"] is [String] || info?["unsupportedKeyList"] is [String] { shape[7]+=1 }
+                if warning["unsupportedKeyMap"] is [String:Any] { shape[8]+=1 }
+                if warning["unsupportedKeys"] is [String] { shape[9]+=1 }
+                if warning["keys"] is [String] { shape[10]+=1 }
+                guard warning["type"] == nil || warning["type"] as? String == "warning" else { onlyUnsupported=false;shape[5]+=1;continue }
+                if (warning["type"] == nil || warning["type"] as? String == "warning"),
+                   let keys=info?["unsupportedKeyMap"] as? [String:Any] {
+                    shape[3]+=1;names=Array(keys.keys)
+                } else if let list=info?["unsupportedKeyList"] as? [String] ?? info?["unsupportedKeyMap"] as? [String] ?? info?["unsupportedKeys"] as? [String] {
+                    names=list
+                } else if let keys=warning["unsupportedKeyMap"] as? [String:Any] {
+                    shape[4]+=1;names=Array(keys.keys)
+                } else if let list=warning["unsupportedKeys"] as? [String] ?? warning["keys"] as? [String] {
+                    names=list
+                } else if !warning.isEmpty && warning.keys.allSatisfy({ parameter($0) != nil }) {
+                    shape[4]+=1;names=Array(warning.keys)
+                } else { onlyUnsupported=false;shape[5]+=1;continue }
+            } else { if value is String { shape[11]+=1 };onlyUnsupported=false;shape[5]+=1;continue }
+            guard !names.isEmpty, names.count<=16 else { onlyUnsupported=false;continue }
+            for key in names {
+                if let values=parameter(key) { parameters.formUnion(values) } else { knownNames=false }
+            }
+        }
+        return .init(stage:stage,flags:[true,true,onlyUnsupported,knownNames],issue:.serverWarnings,
+                     parameterNames:SourceParameter.allCases.filter { parameters.contains($0) },warningShape:shape.map { min($0,16) })
+    }
 }
 
 /// All content is data. No WebKit, JS, arbitrary URL, attachment or token export.
@@ -39,6 +107,7 @@ struct SourceReader {
     let transport: ReadTransport
     let auth: VerifiedSession
     let budget: SourceBudget
+    var calibrateAliases = false
 
     private func object(_ value: [String: Any]) -> [String: Any] { value["data"] as? [String: Any] ?? value }
     func load(_ target: SourceTarget, recordId: String, parent: String? = nil) async throws -> SourceMaterial {
@@ -94,7 +163,17 @@ struct SourceReader {
               let root = detail["uuEccRoot"] as? [String: Any], let bid = root["bid"] as? String else {
             throw SourceShapeFailure(stage:.elementaryDetail, flags:[detail["id"] != nil,detail["id"] as? String == target.oid,detail["uuEccMainPage"] is String,(detail["uuEccRoot"] as? [String:Any])?["bid"] is String])
         }
-        let raw = object(try await transport.source(target, page: page, bid: bid, session: auth, budget: budget))
+        let raw = object(try await transport.source(target, page: page, bid: bid, session: auth, budget: budget, calibrateAliases:calibrateAliases))
+        let omissions=Set(await transport.elementaryOmissions(session:auth).map(\.rawValue))
+        if SourcePolicy.elementaryMainPageOnly(omissions) {
+            let nested=raw["uuEccPage"] as? [String:Any]
+            let oid=(raw["oid"] ?? nested?["oid"]) as? String, returnedBID=(raw["bid"] ?? nested?["bid"]) as? String
+            guard oid==page,returnedBID==bid,
+                  nested?["oid"] == nil || nested?["oid"] as? String==page,
+                  nested?["bid"] == nil || nested?["bid"] as? String==bid else {
+                throw SourceShapeFailure(stage:.elementaryPageIdentity,flags:[oid != nil,oid==page,returnedBID != nil,returnedBID==bid])
+            }
+        }
         guard raw["oid"] == nil || raw["oid"] as? String == page,
               let panels = raw["panels"] as? [String: Any], let panel = panels["mainPanel"] as? [String: Any],
               let sections = panel["sectionList"] as? [[String: Any]], sections.count <= 1000 else {

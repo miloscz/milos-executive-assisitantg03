@@ -301,13 +301,17 @@ def main():
             job=db.execute('SELECT * FROM jobs WHERE id=?',(job_id,)).fetchone()
         else:
             job=db.execute("SELECT * FROM jobs WHERE day>=? AND state NOT IN ('ready','partial','superseded') ORDER BY day,phase LIMIT 1",(today,)).fetchone()
+            if not job and args.action=='refresh':
+                # An explicit refresh after an adapter repair may reread the
+                # existing publication; it never creates a new job or date.
+                job=db.execute("SELECT * FROM jobs WHERE day>=? AND state IN ('ready','partial') ORDER BY updated DESC LIMIT 1",(today,)).fetchone()
         if args.action=='status':
             result={'ok':True,'state':job['state'] if job else 'idle',**({'date':job['day']} if job else {})}
         elif args.action=='publish':
             result=publish_analysis(db)
         elif not job: result={'ok':True,'state':'idle'}
         elif args.action=='refresh':
-            if job['state']!='needsAnalysis':raise ValueError('invalid_refresh')
+            if job['state'] not in {'needsAnalysis','ready','partial'}:raise ValueError('invalid_refresh')
             result=run_job(db,job)
         elif args.action=='retry':
             if job['state'] not in {'failed','awaitingBinding','awaitingAccess'}:raise ValueError('invalid_retry')

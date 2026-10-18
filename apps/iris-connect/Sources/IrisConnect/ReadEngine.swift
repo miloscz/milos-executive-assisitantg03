@@ -405,7 +405,7 @@ final class ReadEngine: ObservableObject {
             }
             return rank(left) < rank(right)
         }
-        let budget = SourceBudget(), reader = SourceReader(transport: transport, auth: auth, budget: budget)
+        let budget = SourceBudget(), reader = SourceReader(transport: transport, auth: auth, budget: budget, calibrateAliases:pilot)
         var materials: [SourceMaterial] = [], checks: [SourceCheck] = [], tested = Set<String>()
         var meetings = 0, documents = 0, textCount = 0, complete = true, visited = Set<String>()
         func type(_ target: SourceTarget) -> String { target.elementary ? "elementaryMeeting" : "managementKit." + target.entityType }
@@ -422,7 +422,8 @@ final class ReadEngine: ObservableObject {
             do {
                 let material = try await reader.load(target, recordId: record.id)
                 guard epoch == generation else { throw ReadFailure.cancelled }
-                checks.append(SourceCheck(type: key, verified: true, pages: material.pageCoverage, reason: nil))
+                checks.append(SourceCheck(type: key, verified: true, pages: material.pageCoverage, reason: nil,
+                    parameterNames:target.elementary ? await transport.elementaryOmissions(session:auth) : nil))
                 if pilot { sourceTypesVerified.insert(key); continue }
                 textCount += material.preparationText.count + material.minutesText.count
                 if textCount > 600000 { complete = false; break }
@@ -445,7 +446,7 @@ final class ReadEngine: ObservableObject {
                 guard epoch == generation else { throw ReadFailure.cancelled }
                 complete = false
                 let shape = error as? SourceShapeFailure
-                checks.append(SourceCheck(type: key, verified: false, pages: 0, reason: error as? ReadFailure ?? .schemaMismatch,stage:shape?.stage,shape:shape?.flags))
+                checks.append(SourceCheck(type: key, verified: false, pages: 0, reason: error as? ReadFailure ?? .schemaMismatch,stage:shape?.stage,shape:shape?.flags,issue:shape?.issue,parameterNames:shape?.parameterNames,warningShape:shape?.warningShape))
             }
         }
         if pilot {

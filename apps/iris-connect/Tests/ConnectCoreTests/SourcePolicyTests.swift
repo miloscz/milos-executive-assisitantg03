@@ -27,6 +27,18 @@ final class SourcePolicyTests: XCTestCase {
         XCTAssertEqual(query.count, 6)
         XCTAssertEqual(query.filter { $0.name == "meetingId" }.first?.value, target.oid)
         XCTAssertThrowsError(try target.contentURL(page: "../bad", bid: oid))
+        let narrowed=try target.contentURL(page:oid,bid:oid,omitting:["meetingId","uuEccPage.oid","uuEccPage.bid"])
+        let remaining=URLComponents(url:narrowed,resolvingAgainstBaseURL:false)!.queryItems!
+        XCTAssertEqual(Set(remaining.map(\.name)),["id","oid","bid"])
+        XCTAssertTrue(remaining.allSatisfy { $0.value==oid })
+        let invalid:[Set<String>] = [["meetingId","id"],["oid","uuEccPage.oid"],["bid","uuEccPage.bid"],["token"]]
+        for omitted in invalid {
+            XCTAssertThrowsError(try target.contentURL(page:oid,bid:oid,omitting:omitted))
+        }
+        let mk=try SourceTarget(sourceURL:base+"/document?oid="+oid)
+        XCTAssertThrowsError(try mk.contentURL(page:oid,omitting:["id"]))
+        let mainOnly=try target.contentURL(page:oid,bid:oid,omitting:["meetingId","oid","bid","uuEccPage.oid","uuEccPage.bid"])
+        XCTAssertEqual(URLComponents(url:mainOnly,resolvingAgainstBaseURL:false)!.queryItems!.map(\.name),["id"])
     }
     func testSourceTextDoesNotExecuteComponentsAndDoesNotExportLikelySecrets() {
         let unknown = SourcePolicy.text("<uu5string/><App.Execute command='write'/>Business fact", limit: 100)

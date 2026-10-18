@@ -23,6 +23,12 @@ actor ReadTransport {
     private var lastRefill = Date()
     private var occupied = 0
     private var waiting: [CheckedContinuation<Void, Never>] = []
+    private var elementaryProfile: (identity:String, expires:Date, omitted:Set<String>)?
+
+    func elementaryOmissions(session auth:VerifiedSession) -> [SourceParameter] {
+        guard let p=elementaryProfile,p.identity==auth.identity,p.expires==auth.expiresAt else { return [] }
+        return SourceParameter.allCases.filter { p.omitted.contains($0.rawValue) }
+    }
 
     private func acquire() async {
         if occupied < 2 { occupied += 1; return }
@@ -57,13 +63,40 @@ actor ReadTransport {
     }
 
     func source(_ target: SourceTarget, page: String? = nil, bid: String? = nil,
-                session: VerifiedSession, budget: SourceBudget) async throws -> [String: Any] {
-        let url = try page.map { try target.contentURL(page: $0, bid: bid) } ?? target.detailURL()
-        let (object, _) = try await get(url, session: session, deadline: budget.deadline, budget: budget)
-        return object
+                session: VerifiedSession, budget: SourceBudget, calibrateAliases:Bool = false) async throws -> [String: Any] {
+        let omissions=Set(elementaryOmissions(session:session).map(\.rawValue))
+        let url: URL
+        do { url = try page.map { try target.contentURL(page: $0, bid: bid, omitting:target.elementary ? omissions : []) } ?? target.detailURL() }
+        catch {
+            if target.elementary {
+                throw SourceShapeFailure(stage:.elementaryTarget,
+                    flags:[page.map { SourcePolicy.hex($0,length:24) } ?? false,page.map { SourcePolicy.hex($0,length:32) } ?? false,
+                           bid.map { SourcePolicy.hex($0,length:24) } ?? false,bid.map { SourcePolicy.hex($0,length:32) } ?? false],issue:.targetIdentifiers)
+            }
+            throw error
+        }
+        let stage: SourceStage? = target.elementary ? (page == nil ? .elementaryDetailRequest : .elementaryPageRequest) : nil
+        do {
+            let (object, _) = try await get(url, session: session, deadline: budget.deadline, budget: budget, sourceStage:stage)
+            return object
+        } catch let failure as SourceShapeFailure {
+            // Only the explicit native contract pilot may calibrate redundant
+            // aliases. Reject the first response; never use its content. The
+            // second request can only remove named, already-approved keys and
+            // must retain meeting, page and BID bindings with identical values.
+            guard target.elementary, let page, calibrateAliases, omissions.isEmpty,
+                  failure.issue == .serverWarnings, failure.flags == [true,true,true,true],
+                  let names=failure.parameterNames else { throw failure }
+            let narrowed=Set(names.map(\.rawValue))
+            guard SourcePolicy.validElementaryOmissions(narrowed) else { throw failure }
+            let next=try target.contentURL(page:page,bid:bid,omitting:narrowed)
+            let (object,_)=try await get(next,session:session,deadline:budget.deadline,budget:budget,sourceStage:stage)
+            elementaryProfile=(session.identity,session.expiresAt,narrowed)
+            return object
+        }
     }
 
-    private func get(_ url: URL, session auth: VerifiedSession, deadline: Date, budget: SourceBudget? = nil) async throws -> ([String: Any], Int) {
+    private func get(_ url: URL, session auth: VerifiedSession, deadline: Date, budget: SourceBudget? = nil, sourceStage: SourceStage? = nil) async throws -> ([String: Any], Int) {
         await acquire(); defer { release() }
         for attempt in 0...2 {
             guard auth.expiresAt > Date() else { throw ReadFailure.loginRequired }
@@ -94,7 +127,10 @@ actor ReadTransport {
                     // Do not read an error body: it may contain private diagnostics.
                 }
                 if http.statusCode == 200 {
-                    guard (http.mimeType ?? "").lowercased() == "application/json" else { throw ReadFailure.schemaMismatch }
+                    guard (http.mimeType ?? "").lowercased() == "application/json" else {
+                        if let sourceStage { throw SourceShapeFailure(stage:sourceStage,flags:[false],issue:.contentType) }
+                        throw ReadFailure.schemaMismatch
+                    }
                     guard response.expectedContentLength <= 4_194_304 else { throw ReadFailure.responseTooLarge }
                     var data = Data()
                     for try await byte in bytes {
@@ -105,13 +141,26 @@ actor ReadTransport {
                         }
                         data.append(byte)
                     }
-                    guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw ReadFailure.schemaMismatch }
+                    guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                        if let sourceStage { throw SourceShapeFailure(stage:sourceStage,flags:[true,false],issue:.jsonObject) }
+                        throw ReadFailure.schemaMismatch
+                    }
                     // Unknown server warnings can indicate an ignored parameter, so fail closed.
-                    if let errors = object["uuAppErrorMap"] as? [String: Any], !errors.isEmpty { throw ReadFailure.schemaMismatch }
+                    if let map = object["uuAppErrorMap"] {
+                        guard let errors=map as? [String:Any] else {
+                            if let sourceStage { throw SourceShapeFailure(stage:sourceStage,flags:[true,true,false,false],issue:.serverWarnings) }
+                            throw ReadFailure.schemaMismatch
+                        }
+                        if !errors.isEmpty && !(sourceStage != nil && SourceShapeFailure.onlyEmptyUnsupportedKeys(errors)) {
+                            if let sourceStage { throw SourceShapeFailure.warnings(errors,stage:sourceStage) }
+                            throw ReadFailure.schemaMismatch
+                        }
+                    }
                     try await budget?.consume(data.count)
                     return (object, data.count)
                 }
-            } catch let failure as ReadFailure { throw failure }
+            } catch let failure as SourceShapeFailure { throw failure }
+            catch let failure as ReadFailure { throw failure }
             catch is CancellationError { throw ReadFailure.cancelled }
             catch {
                 guard attempt < 2 else { throw ReadFailure.transport }

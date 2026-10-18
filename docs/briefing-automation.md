@@ -63,3 +63,8 @@ Ověření implementace: 57 nativních syntetických testů, 10 testů jádra, 1
 
 
 Místní provoz doplňuje samostatná ochrana proti nečinnému uspání pouze při napájení ze sítě, protože výchozí uspání bylo nastavené na jednu minutu. Nemění systémová nastavení a nezabraňuje zamčení/vypnutí displeje. První živá kontrola prokázala uvolněnou ochranu při baterii. Po připojení nabíječky byla ověřená také skutečná aktivní ochrana PreventUserIdleSystemSleep vlastního procesu Iris při AC; všechny čtyři služby běžely. [Postup a odstranění](briefing-runbook.md#dostupnost-tohoto-macu).
+
+
+## Probíhající oprava Elementary – večer 18. října
+
+Jednorázová schválená diagnostika zjistila technický název unsupportedKeys a byla odstraněná z kódu i obou dočasných bundlů 0.7.3. Živé pokusy 0.7.4 a 0.7.5 čtení stránky stále odmítly; čtyři typy ManagementKit dál fungují. 0.7.6 přidává dokumentovanou strukturu paramMap.unsupportedKeyList, kterou dosavadní parser neznal. Je sestavená a nasazená, ale čeká na místní souhlasy a živý pilot. Do jeho úspěchu Elementary texty zůstávají blokované a předchozí částečný briefing se nesmí vydávat za novou úplnou přípravu. Přesné důkazy a omezení jsou v iris-connect-read-verification.md.

@@ -1,0 +1,13 @@
+{
+  "policyId": "iris-connect-em-warning-diagnostic-v1",
+  "approved": true,
+  "policySha256": "683805d307eb48eca9bac561cc0628dcd5cc4d5e9a535a0476ec69cf416ca212",
+  "approvedOn": "2026-10-18",
+  "approvalSource": "Direct human instruction in this chat",
+  "approvalText": "Dobře, schvaluji jednorázovou diagnostickou výjimku pro zjištění názvu varování. Pokračuj v opravě čtení schůzek Elementary Management a po zjištění příčiny rozšířenou diagnostiku odstraň.",
+  "scope": "Only the exact temporary diagnostic specification; remove export after identification; no credential access or direct +4U tools",
+  "consumed": true,
+  "observedTechnicalName": "unsupportedKeys",
+  "removalStatus": "Removed from source, build resources and installed 0.7.4; both temporary 0.7.3 bundles deleted",
+  "removedIn": "0.7.4"
+}

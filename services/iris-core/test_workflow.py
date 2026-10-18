@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import io
+from contextlib import redirect_stdout
 from unittest.mock import patch
 
 import workflow
@@ -85,6 +87,19 @@ class WorkflowTests(unittest.TestCase):
                 with patch.object(workflow,'now_utc',return_value=datetime.fromisoformat('2026-10-18T17:00:00+00:00')):workflow.publish_analysis(db)
             db.execute("UPDATE jobs SET state='superseded'");db.commit()
             with self.assertRaisesRegex(ValueError,'no_analysis_job'):workflow.publish_analysis(db)
+    def test_explicit_refresh_reuses_published_job_without_creating_work_or_starting_mfa(self):
+        with workflow.locked_queue() as db:
+            db.execute('INSERT INTO jobs VALUES (?,?,?,?,?,?,?)',('prepare/2026-10-19','prepare','2026-10-19','partial','2026-10-18T16:00:00Z',None,None));db.commit()
+        calls=[]
+        def helper(kind,operation,*args):
+            calls.append((kind,operation))
+            if operation=='status':return {'enabled':True,'sessionValid':False,'busy':False,'state':{'eventID':'247149A1-25EB-4D9D-805F-1F1F79F01814'}}
+            self.assertEqual(operation,'prepare');return {'ok':True}
+        with patch.object(workflow.sys,'argv',['workflow.py','refresh']),patch.object(workflow,'now_utc',return_value=datetime.fromisoformat('2026-10-18T16:05:00+00:00')),patch.object(workflow,'helper',side_effect=helper),redirect_stdout(io.StringIO()):workflow.main()
+        self.assertEqual(calls,[('IrisControl','status'),('IrisControl','prepare')])
+        with workflow.locked_queue() as db:
+            rows=db.execute('SELECT * FROM jobs').fetchall()
+            self.assertEqual(len(rows),1);self.assertEqual(rows[0]['id'],'prepare/2026-10-19');self.assertEqual(rows[0]['state'],'awaitingAccess')
 
 
 if __name__=='__main__':unittest.main()

@@ -123,3 +123,31 @@ Následující stav nahrazuje čekání uvedené u historické 0.7.0 výše. Mil
 Pro pondělí 19. října vznikl nový soukromý balíček: aktuální agenda od 20:23:56 Europe/Prague, zdroje do 20:26:25; devět podkladů na 19 stránkách. Model připravil dvě rozhodovací analýzy s pěti doslovně ověřenými citacemi. Pevný publisher zkontroloval balíček a soukromý pracovní stav, předal 14 karet, uvedl neúplnost a stav partial. Místní sandboxované stdio i skutečný cloudový Iris Local vrátily nový výstup jako current, calendarCoverage=verified, 11 bloků / 3 priority / 2 souběhy. Tento test nevyvolal žádné přihlášení ani MFA.
 
 Aktivní rozvrhy, stavy a rozdíl mezi uloženou rutinou a skutečným doručením eviduje [runbook](briefing-runbook.md). Uživatel předal potvrzení uložené rutiny hlavní Aidy, ale první plánované ranní doručení a hlas ještě neproběhly. Podklady zůstávají částečné; nelze tvrdit kompletní přípravu všech schůzek.
+
+
+## Oprava Elementary – diagnostika a 0.7.4
+
+Po místním potvrzení 0.7.2 prošla kalibrace kalendáře a přesná pevná diagnostika určila elementaryPageRequest/serverWarnings. Detail a identifikátory prošly, nešlo o přihlášení nebo renderování stránky. Miloš následně výslovně schválil jednorázový výstup koncového technického názvu podle přesného hashe výjimky. V 0.7.3 byl jediným vráceným názvem unsupportedKeys; nevracely se zprávy, hodnoty, obsah nebo autentizační údaje.
+
+Zdrojový export názvů a přibalení diagnostického povolení jsou odstraněné. Ověřený hardened bundle 0.7.4 neobsahuje diagnostické prostředky; při nasazení byly oba dočasné bundly 0.7.3 s exportem odstraněné. Záloha 0.7.2 zůstává. Výjimka je vyčerpaná, nepovoluje nové zjišťování názvů.
+
+Oprava rozpozná přesnou strukturu standardního unsupportedKeys i bez namespace. Jen pilot smí jedním kalibračním krokem odstranit explicitně odmítnuté schválené aliasy a ověřit užší požadavek stejného commandu. Každá vazba schůzka/stránka/BID musí zůstat; neznámý klíč nebo další varování vše odmítne. Běžné čtení nic nekalibruje a používá jen ověřený profil stejné identity a expirace relace. Testy ověřily rozsah, vazby, nezpřístupnění libovolných názvů, druhé varování, nepřenesení profilu do nové relace a stejné čtení bez vykonávání komponent. Prošlo 46 Core + 17 Native testů.
+
+Nasazení proběhlo po dvou kontrolách busy=false a ověření ukončení Connect, bez restartu MCP nebo automatického MFA. Živý pilot a nový briefing čekají na místní souhlasy člověka pro podpis 0.7.4. Syntetický úspěch sám není živým důkazem opravy.
+
+
+## Navazující kontrola a 0.7.5
+
+Po uživatelském dokončení přihlášení 0.7.4 pilot kalendáře prošel, ale Elementary dál skončil na elementaryPageRequest/serverWarnings se čtveřicí true/true/false/true a bez známých odmítnutých parametrů. Všechny čtyři ManagementKit typy prošly s počty stran 1/1/4/1. Živá oprava v této verzi tedy prokázaná není.
+
+0.7.5 přidává přísné rozpoznání kompaktní struktury a prázdných unsupportedKeys metadat, případně důkaz identity vrácené hlavní stránky, pokud server odmítl všechny explicitní aliasy stránky. Neignoruje neznámá varování. Pevné počty tvarů neobsahují zprávy, hodnoty ani libovolné názvy. Prošlo 46 Core + 20 Native testů; všechny použily syntetická data. Bundle prošel ověřením podpisu a obou schválených hashů. Před výměnou bylo ověřeno busy=false a správce ukončil starý proces; MCP host zůstal běžet. Nový proces běží, ale živé čtení a briefing zatím čekají na nový místní souhlas člověka.
+
+
+## Živý pilot 0.7.5 a dokumentovaný unsupportedKeyList
+
+Po uživatelském obnovení souhlasů, přihlášení a MFA prošel kalendář. Elementary zůstal odmítnutý v elementaryPageRequest/serverWarnings: parameterNames=[], shape=[true,true,false,true], warningShape=[1,1,0,0,0,1,1,0,0,0,0,0]. Pevné počty dokazují objekt varování s objektem paramMap, nikoli použití kompaktního seznamu či prázdných metadat. ManagementKit znovu prošel na 1/1/4/1 stranách.
+
+Následná kontrola lokální dokumentace uuAppServer Errors and warnings nalezla dokumentovaný tvar paramMap.unsupportedKeyList (seznam cest $.…); parser dosud rozpoznával především unsupportedKeyMap. 0.7.6 přidává právě tento seznam do stejné přísné validace známých aliasů, severity a vazeb. Jeho skutečný výskyt a výsledný užší GET zatím musí doložit živý pilot. Nepřibylo žádné pole diagnostiky, výstup hodnot ani povolený command. Syntetické testy s dokumentovaným tvarem i odmítnutím neznámých parametrů, error severity a odstranění obou identifikátorů schůzky prošly (46 Core + 20 Native).
+
+
+Podepsaná 0.7.6 byla po ověření obou schválených hashů, nepřítomnosti dočasného diagnostického prostředku a busy=false nasazená přes správce služeb. Předchozí 0.7.5 je zachovaná jako záloha; MCP host nebyl restartovaný. Nový proces běží, čeká na místní souhlasy a lidské přihlášení. V tomto bodě se nový briefing nepublikoval a čtení Elementary nebylo prohlášené za ověřené. Samostatně prošlo všech 11 testů pracovního jádra včetně obnovení již publikované úlohy bez vytvoření nové a bez automatického MFA.

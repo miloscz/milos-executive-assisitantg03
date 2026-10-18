@@ -52,3 +52,10 @@ Pracovní uuCommandy se povolují až podle schválené sady a podmínek paramet
 ## Schválené zdroje briefingu
 
 Miloš 18. října 2026 schválil `iris-connect-briefing-sources-v1` včetně uuManagementKit `document`, `meeting`, `keyTask` a `request`. Přesný hash a výslovnou změnu proti posouzenému návrhu váže `policies/iris-connect-briefing-sources-v1.approval.json`. Samotné úpravy souborů politiku nezapínají. Nativní pilot vrací pouze pevné kontroly a počty; provozní normalizované texty se povolují až podle ověřeného zdrojového typu. Nejvýše jeden krok odkazů do povolených dokumentových typů, bez příloh a bez jakéhokoli dalšího přístupu Aidy. Změny mimo tuto sadu vyžadují nové schválení.
+
+
+## Dočasná diagnostická výjimka Elementary Management
+
+Miloš 18. října výslovně schválil jednorázové zjištění technického názvu varování podle `policies/iris-connect-em-warning-diagnostic-v1.draft.json`, SHA-256 `683805d307eb48eca9bac561cc0628dcd5cc4d5e9a535a0476ec69cf416ca212`; souhlas je v odpovídajícím approval.json. Jen nativní diagnostický pilot smí vrátit nejvýše čtyři koncové technické názvy tvořené 3–64 ASCII písmeny, bez zpráv, parametrů, obsahu nebo autentizačních údajů. Výstup se nevystavuje Aidě ani MCP. Po identifikaci příčiny je nutné rozšířený export z opravné aplikace odstranit. Ostatní zákazy a schválené commandy zůstávají beze změny.
+
+Výjimka byla jednorázově využita: zjištěný název je `unsupportedKeys`. Je vyčerpaná; další export názvů není povolený bez nového souhlasu. Opravná zdrojová verze 0.7.4 jej už neobsahuje a nepřibaluje diagnostické povolení.
