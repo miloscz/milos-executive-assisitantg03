@@ -1,6 +1,6 @@
 # Iris Connect místní prototyp
 
-**Aktuální stav, 18. října večer:** nasazená 0.7.7, čeká na místní souhlasy a živý důkaz neprázdného textu schůzky. Síťové čtení Elementary je ověřené v 0.7.6; níže uvedené starší stavy jsou historie. Oprava rich-text polí prošla 68 syntetickými testy. Aida dál používá jen pět omezených MCP nástrojů.
+**Aktuální stav, 18. října večer:** nasazená 0.7.7 je živě ověřená včetně skutečného textu kontrolní schůzky Meetings AI records tool. Běžná dávka načetla 24 materiálů / 34 stran, včetně 15 Elementary stránek; čtyři z nich vrátily neprázdný text. Pondělní briefing prošel přes skutečný Iris Local jako current/partial: 14 karet, pět obsahových analýz, sedm ověřených citací. Ostatní mezery a nepodporovaný obsah jsou označené. Prošlo 68 syntetických testů; Aida dál používá jen pět omezených MCP nástrojů. Níže uvedené starší stavy jsou historie.
 
 **Historie 0.6.1 – čtecí kalibrace kalendáře:** po chybě pokusu s ISO timestampy používá pouze date-only YYYY-MM-DD. Pražské intervaly obalí UTC dny, přebytečné záznamy filtruje nativně. Pevný `IrisRead diagnostics.calendarBoundaries` porovná širší okno, aktivní blokující záznamy, sousední dny, místní filtr na existující události a dostupný den změny času. Vrátí pouze počty a příznaky; bez shody povinných kontrol nepovolí běžné calendar.list. Nezapisuje testovací události. Prošlo 37 syntetických testů; následný živý výsledek vedl k doplnění 0.6.2 popsanému níže. [Doložené výsledky a limity](../../docs/iris-connect-read-verification.md).
 

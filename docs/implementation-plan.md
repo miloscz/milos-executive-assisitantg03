@@ -248,3 +248,10 @@ Na tomto Macu běží Connect 0.7.1, MCP server 0.3.0 v hostu 0.2.1 a soukromý 
 Obsahová příprava a omezený výstup jsou zapojené: nový briefing pro 19. října obsahuje 14 karet, dvě zpracovaná rozhodnutí s pěti ověřenými citacemi a výslovně označené mezery. Skutečné čtení nového schématu uspělo místně i přes Iris Local. Celkový stav je partial. Trvalá fronta, čekání na MFA bez startu, duplicity, vazba analýzy na balíček a opravy čerstvé publikace jsou synteticky otestované.
 
 Večerní příprava 18:00 a ranní obnova 7:00 Po–Pá jsou uložené aktivní automatizace tohoto chatu; tichý následný běh dokončuje pouze čekající analýzu. Miloš předal potvrzení hlavní Aidy o jediné odpovídající rutině s doručením do jejich chatu od 19. října. První skutečné plánované doručení, obnovení po další MFA a hlasový průchod ještě čekají na provozní ověření. [Runbook a přesný aktuální stav](briefing-runbook.md), [omezení zdrojů](briefing-automation.md). Rotace klíče, oprava Elementary adaptéru, další konektory a zápisy zůstávají samostatné navazující kroky.
+
+
+## Dokončená oprava čtení Elementary – 18. října večer
+
+0.7.7 opravuje dokumentovaný unsupportedKeyList (pilot odstraní jen odmítnuté aliasy oid/bid) a převod RichText.Block uu5String/uu5string polí. Po lidském obnovení souhlasů a MFA prošel pilot i běžná dávka; kontrolní Meetings AI records tool vrátil skutečnou přípravu. Dočasná diagnostická výjimka je vyčerpaná a export odstraněný. Prošlo 68 nativních syntetických testů.
+
+Aktuální pondělní briefing byl znovu obsahově posouzený a publikovaný: 14 karet, pět analýz, sedm ověřených citací, current/partial. Skutečné místní i cloudové MCP čtení uspělo. Neúplný vložený obsah a přílohy zůstávají označené; další kvalita těchto převodů je navazující práce. První plánované doručení hlavní Aidou a hlas ještě nemají provozní důkaz. Podrobné výsledky jsou v iris-connect-read-verification.md; k dokončené opravě už není potřeba další nativní nasazení nebo místní souhlas.

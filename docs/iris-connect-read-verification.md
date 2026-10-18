@@ -2,7 +2,7 @@
 
 ## Aktuální stav
 
-Elementary commandy prošly pilotem i běžnou dávkou v 0.7.6. Převod textu ale ignoroval dokumentovaná vnořená rich-text pole. Opravná 0.7.7 je podepsaná a nasazená po bezpečném ukončení předchozí aplikace; čeká na nové místní souhlasy a živé ověření kontrolní schůzky Meetings AI records tool. Záloha 0.7.6 je zachovaná, schválené politiky i MCP beze změny. Poslední cloudově ověřený briefing pro 19. října je current/partial, 14 karet, dvě připravená rozhodnutí; neprázdné aktuální podklady Elementary ještě nejsou doložené. Podrobné důkazy a historie následují.
+Iris Connect 0.7.7 je po lidském obnovení souhlasů a MFA živě ověřený. Prošly kalendářní hranice, všech pět zdrojových typů i běžné čtení. Kontrolní Meetings AI records tool vrátil 206 znaků skutečné přípravy; podklady se použily ve validované analýze a skutečný cloudový Iris Local ji následně vrátil. Pondělní briefing: current/partial, 11 bloků, 3 priority, 2 souběhy, 14 karet, 5 obsahových analýz a 7 ověřených citací. Celková dávka 24 materiálů / 34 stran zahrnuje 15 Elementary stránek; čtyři daly neprázdný text. Zbývající prázdné výňatky nejsou důkazem prázdného serverového obsahu. Neúplné převody a nenačtené přílohy zůstávají označené. Schválené politiky a omezené MCP se neměnily, dočasný export je odstraněný. Podrobné důkazy a historie následují.
 
 ## Historie opravy časových hranic 0.6.1
 
@@ -120,7 +120,7 @@ Místní souhlas s obnovou čtecího párování váže přesné podpisy aplikac
 Podepsaná 0.7.0 je nyní nasazená na tomto Macu. Závěrečná sada: 45 testů ConnectCore a 10 nativního čtení, všechny úspěšné; čtyři testy správce spuštění také prošly. Testy používají výhradně syntetická data. Kontrola prostředků nainstalovaného bundlu potvrdila schválený hash, původní DW politika zůstává beze změny. Při výměně byl dvakrát ověřen nečinný login; předchozí bundle je zachovaný v ignorovaném build/backups. MCP host nebyl zastavený a sanitizovaný stav dál potvrzuje ready. Relace ani MFA se při nasazení nespustily. Čeká se na místní souhlasy člověka, jeho přihlášení a čtecí párování před živým pilotem.
 
 
-## Aktuální živé ověření 0.7.1 a automatické přípravy
+## Historie živého ověření 0.7.1 a automatické přípravy
 
 Následující stav nahrazuje čekání uvedené u historické 0.7.0 výše. Miloš dokončil nový místní souhlas, ověření přihlášení/MFA a párování. Fronta po skutečném dokončení sama navázala. Pilot ověřil ManagementKit meeting/document/keyTask/request s počty stran 1/1/4/1. Elementary meeting zůstal schemaMismatch, bez textového výstupu a bez prokázané přesné příčiny; neznámé warnings se dál odmítají. Změna na 0.7.1 neopravila tento živý kontrakt. Nativní sada má 46 Core + 11 Native úspěšných syntetických testů.
 
@@ -171,3 +171,17 @@ Běžné sources.prepare se stejným ověřeným profilem úspěšně načetlo 2
 Porovnání s původní technickou čtečkou a lokální znalostní dokumentací Uu5RichTextBricks.Block prokázalo podporovaný typ uu5String = string | [string | object]. Dosavadní nativní převod četl tuto vlastnost jen jako string, takže pole ignoroval. Zdrojová 0.7.7 doplňuje omezenou rekurzi pouze dokumentovaných uu5String/uu5string polí známých RichText.Block tagů, bez renderování, s limity 1000 uzlů, hloubkou 20 a 16000 znaky. Neznámý tvar se označuje jako neúplný. Spojený text se znovu kontroluje; při citlivém dítěti se zadrží celý blok, aby nezůstaly sousední fragmenty. Prošlo 47 Core + 21 Native testů včetně skutečného typu pole a oddělení přípravy/zápisu. Živý důkaz neprázdného aktuálního textu zatím chybí.
 
 Před novým nativním buildem byl z čerstvé dávky publikovaný pondělní briefing se dvěma znovu posouzenými rozhodovacími analýzami a ověřenými citacemi. Skutečný cloudový Iris Local vrátil current, 19. října, verified, 11 bloků, 14 karet, 2 prepared a partial. Čas zdrojů agendy 21:24:58 Europe/Prague, načítání podkladů skončilo 21:28:20. Prázdné výňatky Elementary nejsou označené za obsahově připravené.
+
+
+## Pilot 0.7.7 po novém místním souhlasu
+
+Miloš potvrdil obnovení místních souhlasů a své přihlášení/MFA. Přes podepsané helpery byly ověřené enabled=true, sessionValid=true, busy=false. Kalendářní hranice prošly. Nativní zdrojový pilot znovu ověřil Elementary (1 strana, vynechané aliasy oid/bid) a ManagementKit meeting/document/keyTask/request (1/1/4/1 strany), bez vydání materiálů nebo přístupových údajů. Následovala obnova existující pondělní úlohy běžným sources.prepare; žádný agentní login nebo MFA se nespustil. Obsahový výsledek a kontrolní schůzka jsou navazující samostatný důkaz.
+
+
+## Živý důkaz obsahu a publikace 0.7.7
+
+Běžná obnova stejné pondělní úlohy dokončila 24 materiálů na 34 stranách, z toho 15 Elementary; neprázdný text vrátily čtyři Elementary stránky. Kontrolní schůzka Meetings AI records tool obsahuje 206 znaků přípravy: cíl domluvit zavedení nahrávacího AI nástroje pro Android a Apple Market places a přihlášené testery za Sales. Její minutesText je prázdný. Předchozí 0.7.6 tento text nevracel, takže skutečná nová datová větev RichText.Block je živě doložená. Příprava je označená neúplná kvůli nepodporovanému obsahu; text se nevydává za celou stránku.
+
+Model z aktuálního balíčku znovu posoudil dvě rozhodnutí a přidal tři analýzy: přípravu boardu, board a kontrolní schůzku. Oddělil fakta z výňatků od navržených výstupů a otázek. U boardu použil jen jediný načtený fragment, nikoli domnělou celou agendu. Publisher ověřil všech pět karet a sedm citací proti aktuálním stránkám a hashi; výsledný stav je partial. Zbývajících devět karet zůstává bez tvrzení, že jsou obsahově hotové.
+
+Skutečné sandboxované místní stdio i cloudový iris_get_morning_briefing vrátily current, 2026-10-19, calendarCoverage=verified, 11 bloků / 3 priority / 2 souběhy. Cloud obsahoval všech 14 karet, pět prepared, sedm citací a kontrolní schůzku s oběma citacemi. Agenda byla načtená 18. října ve 21:39:23 Europe/Prague, dávka podkladů skončila 21:42:39 a publikace 21:43:40. Nejstarší čas zdrojů ve výstupu je správně 21:39:23; čas se neposouval bez čtení. Test nepoužil přímé +4U nástroje, auth UI, token, kódy ani automatické MFA. Jde o důkaz dostupnosti nového výstupu přes cestu Aidy; první plánované ranní doručení hlavní Aidou a hlasový průchod zůstávají samostatné provozní ověření.

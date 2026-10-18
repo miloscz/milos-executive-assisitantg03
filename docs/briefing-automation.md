@@ -1,6 +1,6 @@
 # Automatická příprava a ranní obnova
 
-**Aktuální stav večer 18. října:** síťové čtení Elementary prošlo pilotem i běžnou dávkou (15 schůzek). Oprava převodu vnořeného rich-text obsahu v nasazené 0.7.7 čeká na místní souhlasy a živou kontrolu. Pondělní briefing byl obnoven a přes Iris Local ověřen jako current/partial se 14 kartami a dvěma obsahově připravenými rozhodnutími. Podklady Elementary se zatím nevydávají za připravené. Podrobnosti jsou v [záznamu ověření](iris-connect-read-verification.md).
+**Aktuální stav večer 18. října:** oprava Elementary je v 0.7.7 živě ověřená včetně textu kontrolní schůzky. Nový pondělní briefing je přes Iris Local current/partial: 14 karet, pět obsahových analýz a sedm ověřených citací. Zdroje agendy jsou od 21:39:23, dávka podkladů skončila 21:42:39 Europe/Prague. Neúplné převody, nenačtené přílohy a další schůzky bez použitelného výňatku zůstávají označené. Rozvrhy a omezené MCP se neměnily. Podrobnosti jsou v [záznamu ověření](iris-connect-read-verification.md).
 
 Miloš 18. října 2026 zadal automatizaci a potvrdil časy **18:00 a 7:00 v pracovní dny, Europe/Prague**. V 18:00 se připravuje následující pracovní den (v pátek pondělí), v 7:00 dnešní den. Víkend není automaticky pracovní den; státní svátky zatím nemají vlastní kalendář.
 
