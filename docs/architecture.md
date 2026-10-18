@@ -135,9 +135,11 @@ Rozhraní Aidy nesmí obsahovat obecné HTTP volání, URL, hlavičky, předáv�
 
 **Co je v prototypu technicky přítomné:** Keychain omezený podepsané nativní aplikaci, hardened runtime bez debuggerových výjimek, pevná síťová politika nativního konektoru, vzájemné ověření místního klienta, striktní parametry a odpovědi bez vlastního autentizačního tokenu. IrisControl používá pouze místní UNIX socket; přímé síťové volání +4U neobsahuje. IrisRead vrací normalizovaná pracovní data; token zůstává v nativním ReadTransport. Jde o hranice těchto rozhraní, nikoli o důkaz izolace celého Macu nebo platformy Dot.
 
-**Co zatím zajištěné není:** Aida má pro pilot přístup k Macu a může mít další nástroje či pluginy. Tím má širší oprávnění než samotný IrisControl. Zákaz přímého volání +4U v celém jejím prostředí nyní není technicky vynucený. Instrukce v chatu, custom rules a absence tokenu v protokolu nenahrazují zákaz přímého síťového přístupu. Místní agent může měnit zdrojový kód; současný ad-hoc podepsaný vývojový build v zapisovatelném projektu není finální oddělená instalační doména.
+**Aktuální napojení Aidy:** Miloš potvrdil odebrání obecného přístupu k Macu, přepnutí na Iris Local a následně hlasový rozhovor nad briefingem. Původní plugin Iris Tunel byl po jeho souhlasu odinstalovaný. Omezený MCP proces má ověřený sandbox a Aida má používat výhradně tuto cestu.
 
-**Před běžným provozem:** nahradit obecný přístup Aidy k Macu úzkým autentizovaným MCP rozhraním Iris. Odebrat Aidě přímé +4U konektory a jiné cesty k přihlášeným relacím; ověřit, zda platforma umí takové odebrání skutečně vynutit. Aidě a jejím úlohám nepovolit obecný shell, prohlížeč ani síť v prostředí s přístupem k Iris Connect. Běžící nativní konektor, schválená politika a instalační proces nesmějí být zapisovatelné agentem; nasazení nového buildu a nové důvěry musí být řízené. Zůstane-li obecný cloudový či místní síťový nástroj, doslovný zákaz jakéhokoli přímého HTTP požadavku na +4U není doložený a nesmí se vydávat za splněný. Musí být odstraněn nebo omezen vynucenou politikou prostředí, nikoli jen instrukcí.
+**Co ještě není doložené:** úplný audit ostatních nástrojů, pluginů a dřívějších úloh Aidy a vynucení zákazu přímého volání +4U v celém prostředí platformy. Instrukce v chatu, custom rules a absence tokenu v protokolu nenahrazují zákaz přímého síťového přístupu. Místní agent může měnit zdrojový kód; současný ad-hoc podepsaný vývojový build v zapisovatelném projektu není finální oddělená instalační doména.
+
+**Před rozšířením autonomie:** zachovat odebraný obecný přístup Aidy k Macu a omezené MCP; dokončit audit a odebrání ostatních přímých +4U konektorů a cest k přihlášeným relacím; ověřit, zda platforma umí takové odebrání skutečně vynutit. Aidě a jejím úlohám nepovolit obecný shell, prohlížeč ani síť v prostředí s přístupem k Iris Connect. Běžící nativní konektor, schválená politika a instalační proces nesmějí být zapisovatelné agentem; nasazení nového buildu a nové důvěry musí být řízené. Zůstane-li obecný cloudový či místní síťový nástroj, doslovný zákaz jakéhokoli přímého HTTP požadavku na +4U není doložený a nesmí se vydávat za splněný. Musí být odstraněn nebo omezen vynucenou politikou prostředí, nikoli jen instrukcí.
 
 **Ověření hranice:** kontrola skutečně dostupných nástrojů Aidy a jejích úloh, izolace procesu a instalace, negativní test nepovolených operací a parametrů, syntetické canary hodnoty v mock autentizaci a kontrola všech výstupních cest včetně chyb. Síťové blokování ověřovat řízeným testovacím cílem a politikou; test sám nesmí porušit zákaz tím, že Aida skutečně zavolá produkční +4U. Žádné pokusy vyčítat skutečné tajné údaje pro „ověření ochrany“. Obousměrné spojení ani úspěšné MFA nejsou důkazem splnění této bezpečnostní podmínky.
 
@@ -205,10 +207,10 @@ Při prohlídce byl v úkolech nalezen výpis jedné stránky o 200 položkách 
 
 ## Otevřené otázky
 
-1. Funkční autentizace s Access Code 1 a 2, MFA a bez registrace nového klienta; tokenová pravidla a potřeba lokální interakce.
-2. Přesná schválená sada uuCommandů, rozsah aplikací a workspaces a validace parametrů.
+1. Základní autentizace s Access Code 1 a 2, lidským MFA a bez registrace nového klienta je ověřená. Zbývají provozní obnovy a řízená aktualizace podepsané instalace.
+2. Čtecí sady jsou schválené a pilotované. Nové zapisovací commandy, jejich parametry a podmínky je ještě potřeba ověřit a schválit.
 3. Časová pravidla rezervací, pevné osobní bloky a pravidla při nedostatku kapacity.
-4. Napojení vlastního pluginu na Aidu a její chování během hlasového hovoru.
+4. Vlastní Iris Local i hlasový rozhovor jsou uživatelsky potvrzené. Otevřené zůstává první plánované doručení a trvalé převzetí rozhodnutí do Iris.
 5. Provozní dostupnost při uspání, odhlášení, restartu a novém souhlasu klíčenky. Nasazení a živý MFA průchod při zamčené obrazovce jsou ověřené; ostatní stavy se od zamčení odlišují a zůstávají k ověření.
 6. Identifikace správného Signal kontaktu Adély, spolehlivé doručení a pravidla připomínání.
 

@@ -4,7 +4,28 @@ Plán z 18. října 2026 realizuje [dohodnutou architekturu](architecture.md). N
 
 První funkční celek musí propojit skutečný úkol z +4U, přípravu řešení, rezervaci Milošova času, rozhodnutí přes Aidu a navazující dokončení. Dokumentace ani úspěšné spuštění modelu samy tento milník nesplňují.
 
-Po ověření místního přihlášení a čtecí proxy Miloš schválil přípravu Macu mini pro Iris Connect a omezené MCP. Následuje [nasazení a ověření zamčené obrazovky](mac-mini-deployment.md); vývoj zůstává na současném Macu. První prototyp je popsaný v [návodu Iris Connect](../apps/iris-connect/README.md) a [záznamu ověření](iris-connect-verification.md).
+Po ověření místního přihlášení a čtecí proxy proběhl pilot na Macu mini, ale po výpadku jeho správy Miloš rozhodl nejprve dokončit místní provoz. Přenos na Mini zůstává odložený; [historie nasazení a stav obou hostů](mac-mini-deployment.md) nejsou novým pokynem k pokračování na Mini. První prototyp je popsaný v [návodu Iris Connect](../apps/iris-connect/README.md) a [záznamu ověření](iris-connect-verification.md).
+
+## Aktuální přehled a chybějící části – 18. října večer
+
+Tento přehled rozlišuje skutečnou implementaci od cílových etap a historických záznamů níže. Celý první funkční celek z úvodu dosud hotový není. Živý briefing a rozhovor nepotvrzují trvalé převzetí rozhodnutí ani dotažení práce.
+
+| Oblast | Doložený stav | Co ještě chybí |
+| --- | --- | --- |
+| Přihlášení a omezené MCP | Místní živé čtení, řízené lidské MFA a Iris Local ověřené; obecný přístup Aidy odebraný podle Milošova potvrzení. | Úplný audit ostatních přímých cest a oddělení provozní instalace od zapisovatelného vývoje. |
+| Agenda a podklady | Kalendář a aktivní úkoly se stránkují; Elementary i čtyři typy ManagementKit živě prošly. | Trvalá evidence změn a verzí všech pracovních položek, úplná klasifikace pro budoucí zápisy a další nepodporovaný obsah. Přílohy nejsou schválenou součástí současného čtení. |
+| Briefing a hlas | Publikovaný pondělní briefing má 14 karet, pět obsahových analýz a sedm citací. Miloš potvrdil hlasový rozhovor. | Část podkladů zůstává neúplná. První plánované doručení a případné ranní upozornění na MFA čekají na ověření 19. října. |
+| Pracovní jádro | SQLite fronta a checkpointy přípravy briefingů. | Pracovní položky, kroky, závislosti, rozhodnutí, schválení, rezervace a události jako společná trvalá evidence. Tabulka jobs sama není toto jádro. |
+| Knowledge base | Výběrové čtení historických poznámek původní Iris pro kontext briefingu. | Inventura, spravovaná nová KB s původem, aktuálností a rozpory, znalostní agent a řízené aktualizace. Začít před rozšířením proaktivní přípravy v etapě 3. |
+| Agenti a know-how | Obsahová příprava běží jako řízený modelový krok tohoto chatu. | Znalostní, schůzková a úkolová role, společná zadání/výstupy, limity běhů a migrace použitelných postupů původní Iris. |
+| Inbox a vstupní filtr | Dohodnutá pravidla v architektuře. | Provozní filtr dalších zdrojů, deduplikace a bezpečné převzetí starých zapisujících procesů; původní Iris se zatím neupravuje ani nevypíná. Původní problém zahlcování inboxu není samotným briefingem vyřešený. |
+| Rozhodnutí z hovoru | Aida předává podklady a vede rozhovor. | Trvalé uložení volby k verzi podkladu, potvrzení převzetí, požadavky na dopracování a navazující ověřená práce v Iris. |
+| Proaktivní příprava a kapacita | Večerní/ranní dávka a jednoduchý výběr priorit. | Předstih v týdnech, zpětné plánování, odhady potřebného Milošova času, závislosti, ohrožené termíny a konkrétní výstupy úkolového agenta. |
+| Kalendářní zápisy | Produktově povolené vlastní rezervace podle budoucích pravidel; žádné aktivní zapisovací commandy. | Časová pravidla, přesné commandy a jejich schválení, kontrola konfliktu a výsledku, zacházení s ruční změnou rezervace. |
+| Signal a Adéla | Cílový proces popsaný; obecné čtení archivu není odesílání. | Migrace potřebných vstupů, ověření kontaktu a schváleného doručení, přiřazení odpovědí a následné ověření skutečné změny kalendáře. |
+| Provoz a migrace | Místní služby, obnova aplikačních procesů, řízené párování a ochrana proti nečinnému uspání. | Bezpečná rotace 30denního klíče, zálohy a skutečná obnova pracovní evidence/KB, provozní přehled, úplná migrace a jediný vlastník každého procesu. Mini je vědomě odložené po výpadku správy. |
+
+Nejbližší doporučené pořadí: doplnit potřebný základ pracovní evidence z etap 1–2 a inventuru/KB se vstupním filtrem; nad jednou pracovní oblastí propojit znalostního a úkolového agenta, přípravu a trvalé převzetí rozhodnutí; poté doplnit zpětné plánování a ochranu kapacity. Ranní provozní test a provozní nedostatky sledovat samostatně. Jde o upřesnění závislostí a návrh další práce, nikoli aktivaci nových MCP operací, +4U zápisů, migrace nebo komunikace třetím osobám.
 
 ## Navržené rozložení projektu
 
