@@ -2,6 +2,8 @@
 
 **0.6.1 – čtecí kalibrace kalendáře:** po chybě pokusu s ISO timestampy používá pouze date-only YYYY-MM-DD. Pražské intervaly obalí UTC dny, přebytečné záznamy filtruje nativně. Pevný `IrisRead diagnostics.calendarBoundaries` porovná širší okno, aktivní blokující záznamy, sousední dny, místní filtr na existující události a dostupný den změny času. Vrátí pouze počty a příznaky; bez shody povinných kontrol nepovolí běžné calendar.list. Nezapisuje testovací události. Prošlo 37 syntetických testů; živé ověření opravy čeká na nové přihlášení a párování. [Doložené výsledky a limity](../../docs/iris-connect-read-verification.md).
 
+**0.6.2 – rozlišení koncového dne:** kalibrace 0.6.1 potvrdila pokrytí a filtrování, ale nepotvrdila předpoklad serverové UTC půlnoci. Nový pevný test porovná UTC/pražskou půlnoc i zahrnutí celého koncového dne a vrátí všechny shodné modely. Neznámý výsledek nepovolí provozní kalendář. I obalený HTTP dotaz musí dodržet 93denní limit. Prošlo 38 syntetických testů; nasazená verze čeká na živé ověření.
+
 Build `scripts/build-app.sh --stage` připraví nový podepsaný bundle v jedinečné oddělené složce build/staging.*, aniž přepíše běžící aplikaci. K aktivaci je nutné bezpečně ukončit starou verzi a po změně podpisu obnovit místní souhlasy. Žádný token nebo souhlas s MFA se nepřenáší.
 
 Nativní aplikace pro tento Mac. Přijímá AC1 a AC2 pouze v soukromém okně, ukládá je do macOS Keychain a doplňuje je do oficiálního formuláře +4U. MFA zpracovává oficiální stránka; potvrzuje ji uživatel. Verze 0.2 přidává omezené místní čtecí rozhraní pro spárovaného klienta. Neobsahuje obecnou HTTP proxy ani zápisy do úkolů a kalendáře.

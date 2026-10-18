@@ -110,7 +110,10 @@ public enum ReadPolicy {
         guard calendarBounds == nil || operation == .calendar else { throw ReadFailure.policyDenied }
         if let bounds = calendarBounds {
             let dates = bounds.enclosingDates
-            items += [.init(name: "dateFrom", value: dates.from), .init(name: "dateTo", value: dates.to)]
+            // Padding must not widen a single HTTP request beyond the approved
+            // 93-calendar-day cap. Longer selections fail closed.
+            let wireWindow = try DateWindow(request: .init(operation: ReadOperation.calendar.rawValue, dateFrom: dates.from, dateTo: dates.to))
+            items += [.init(name: "dateFrom", value: wireWindow.dateFrom), .init(name: "dateTo", value: wireWindow.dateTo)]
         } else if let window { items += [.init(name: "dateFrom", value: window.dateFrom), .init(name: "dateTo", value: window.dateTo)] }
         if operation == .active { items.append(.init(name: "sorterList", value: "[{\"key\":\"startTime\",\"ascending\":false}]")) }
         c.queryItems = items

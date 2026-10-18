@@ -15,6 +15,9 @@ final class CalendarIntervalTests: XCTestCase {
         XCTAssertNoThrow(try ReadRequest.parse(Data(#"{"operation":"diagnostics.calendarBoundaries"}"#.utf8)))
         XCTAssertThrowsError(try ReadRequest.parse(Data(#"{"operation":"diagnostics.calendarBoundaries","dateFrom":"2026-10-19"}"#.utf8)))
         XCTAssertThrowsError(try ReadPolicy.url(base: base, operation: .active, window: nil, page: 0, calendarBounds: bounds))
+        let longWindow = try DateWindow(request: .init(operation: "calendar.list", dateFrom: "2026-01-01", dateTo: "2026-04-03"))
+        XCTAssertThrowsError(try ReadPolicy.url(base: base, operation: .calendar, window: longWindow, page: 0,
+                                               calendarBounds: CalendarInterval(window: longWindow)))
     }
     func testDateEnclosureAcrossDSTAndExactUTCMidnight() throws {
         for (day, from, to) in [("2026-03-29", "2026-03-28", "2026-03-30"), ("2026-10-25", "2026-10-24", "2026-10-26")] {
@@ -23,6 +26,29 @@ final class CalendarIntervalTests: XCTestCase {
         }
         let range = try CalendarInterval(lower: CalendarInterval.instant("2026-10-19T00:00:00Z"), upper: CalendarInterval.instant("2026-10-20T00:00:00Z"))
         XCTAssertEqual(range.enclosingDates.from, "2026-10-19"); XCTAssertEqual(range.enclosingDates.to, "2026-10-20")
+    }
+    func testDateModelsDistinguishInclusiveEndAndDoNotGuessTimezone() throws {
+        let window = try DateWindow(request: .init(operation: "calendar.list", dateFrom: "2026-10-19", dateTo: "2026-10-20"))
+        let models = try CalendarInterval.dateModels(window: window)
+        XCTAssertEqual(models.map(\.name), ["utcMidnight", "utcInclusiveDay", "pragueMidnight", "pragueInclusiveDay"])
+        let onLastDay = try NormalizedRecord(["id":"onLastDay", "startTime":"2026-10-20T12:00:00Z", "endTime":"2026-10-20T13:00:00Z"])
+        XCTAssertFalse(try models[0].bounds.includes(onLastDay, documentedPredicate:true))
+        XCTAssertTrue(try models[1].bounds.includes(onLastDay, documentedPredicate:true))
+        XCTAssertEqual(CalendarInterval.wire(models[2].bounds.lower), "2026-10-18T22:00:00.000Z")
+        let dst = try CalendarInterval.dateModels(window: DateWindow(request: .init(operation: "calendar.list", dateFrom: "2026-10-25", dateTo: "2026-10-25")))
+        let prague = dst.first { $0.name == "pragueInclusiveDay" }!.bounds
+        XCTAssertEqual(prague.upper.timeIntervalSince(prague.lower), 25*3600-0.001, accuracy:0.00001)
+        // Every supported server model must contain the requested local day,
+        // including both DST transitions; ambiguous matches are safe to report.
+        for day in ["2026-03-29", "2026-10-19", "2026-10-25"] {
+            let local = try CalendarInterval(window: DateWindow(request: .init(operation: "calendar.list", dateFrom: day, dateTo: day)))
+            let dates = local.enclosingDates
+            let wire = try DateWindow(request: .init(operation: "calendar.list", dateFrom: dates.from, dateTo: dates.to))
+            for model in try CalendarInterval.dateModels(window: wire) {
+                XCTAssertLessThanOrEqual(model.bounds.lower, local.lower)
+                XCTAssertGreaterThanOrEqual(model.bounds.upper, local.upper)
+            }
+        }
     }
     func testPragueMidnightsAndBothDSTChanges() throws {
         for (day, lower, upper, hours) in [

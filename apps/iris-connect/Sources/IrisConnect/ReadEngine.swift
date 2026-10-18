@@ -36,6 +36,7 @@ struct CalendarBoundaryEvidence: Codable {
     let adjacentWindowsMatch: Bool
     let boundaryFilterMatches: Bool
     let legacyDateOnlyMatchesUTCMidnight: Bool
+    let matchingDateModels: [String]
     let dstChecked: Bool
     let dstMatches: Bool
     let dstDayHours: Int
@@ -266,6 +267,8 @@ final class ReadEngine: ObservableObject {
         let legacyWindow = try window(1, 2), legacy = try await raw(nil, window: legacyWindow)
         let legacyBounds = try CalendarInterval(lower: CalendarInterval.instant(day(1) + "T00:00:00Z"), upper: CalendarInterval.instant(day(2) + "T00:00:00Z"))
         let legacyUTC = Set(legacy.map(\.id)) == (try legacyBounds.ids(wide, documentedPredicate: true))
+        let models = try CalendarInterval.dateModels(window: legacyWindow)
+        let matchingModels = try models.filter { try $0.bounds.ids(wide, documentedPredicate: true) == Set(legacy.map(\.id)) }.map(\.name)
         var dstChecked = false, dstMatches = true, dstHours = 0, dstRecords = 0
         if let transition = cal.timeZone.nextDaylightSavingTimeTransition(after: today), transition < wideBounds.upper {
             let date = f.string(from: transition)
@@ -276,11 +279,12 @@ final class ReadEngine: ObservableObject {
         }
         guard epoch == generation else { throw ReadFailure.cancelled }
         let multiDay = try wide.filter { try CalendarInterval.instant($0.endTime).timeIntervalSince(CalendarInterval.instant($0.startTime)) >= 86400 }.count
-        let verified = !exact.isEmpty && !activeExpected.isEmpty && explicit && activeCoverage && adjacent && edgeMatches && legacyUTC && dstMatches
+        let verified = !exact.isEmpty && !activeExpected.isEmpty && explicit && activeCoverage && adjacent && edgeMatches && !matchingModels.isEmpty && dstMatches
         calendarVerified = verified; cache = cache.filter { !$0.key.hasPrefix(ReadOperation.calendar.rawValue) }
         return CalendarBoundaryEvidence(verified: verified, checkedAt: Date(), timezone: "Europe/Prague", wireFormat: "dateOnlyUTCEnclosure", paddedWindowMatches: explicit,
             activeCoverageMatches: activeCoverage, adjacentWindowsMatch: adjacent, boundaryFilterMatches: edgeMatches,
-            legacyDateOnlyMatchesUTCMidnight: legacyUTC, dstChecked: dstChecked, dstMatches: dstMatches, dstDayHours: dstHours, dstRecords: dstRecords,
+            legacyDateOnlyMatchesUTCMidnight: legacyUTC, matchingDateModels: matchingModels,
+            dstChecked: dstChecked, dstMatches: dstMatches, dstDayHours: dstHours, dstRecords: dstRecords,
             dayBlockSamples: wide.filter { $0.showInDiary?.lowercased() == "dayblock" }.count, multiDaySamples: multiDay,
             scope: "self; documented DAO predicate; live sample; bestEffort; approval iris-connect-read-v1")
     }

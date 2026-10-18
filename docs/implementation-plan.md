@@ -211,3 +211,11 @@ Po ověření nečinné relace byly oba joby bezpečně zastavené, předchozí 
 Miloš potvrdil nové přihlášení a párování. Kalibrace s ISO timestampy selhala jako httpFailure; stejná relace dál úspěšně načetla původní datumový pilot. Přesná serverová příčina není doložená. Oprava 0.6.1 proto používá doložené date-only parametry, UTC obálku a přesný místní filtr. Má 37 úspěšných nativních testů a oddělený podepsaný build. Živá kalibrace opravy a obnova katalogu pátého nástroje v Iris Local zůstávají otevřené. Uživatel v detailu nenašel Refresh; neopakovat neověřený návod. Soukromý náhled briefingu byl znovu aktualizován přes podepsaný IrisRead a stále výslovně hlásí activeRecordsOnly (11 bloků, 3 priority, 2 konflikty).
 
 Oprava Connect 0.6.1 byla následně bezpečně nasazená po potvrzení sessionValid=true, busy=false a authenticated přes Iris Local. Původní bundle je zachovaný. Oba uživatelské joby běží a host tunelu znovu hlásí ready; žádný login ani MFA se při nasazení nespustil. Čeká se na místní kroky člověka v nové podepsané aplikaci.
+
+### Kalibrace 0.6.1 a další ověření
+
+Živá kalibrace v 18:59:55 potvrdila širší pokrytí, aktivní záznamy, sousední dny a přesný místní filtr. Sedm dayBlock a čtyři vícedenní položky. Den podzimní změny má 25 hodin, ale žádné živé položky; netvrdit otestování přechodu události. Předpoklad serverové UTC půlnoci neprošel, proto kalendář zůstal zavřený.
+
+Verze 0.6.2 má čtyři pevné modely datumových parametrů (UTC/pražská půlnoc, UTC/pražský celý koncový den), explicitně vrací všechny shody a kontroluje schválený 93denní limit i po obalení. Prošlo 38 nativních testů. Nový podepsaný build byl bezpečně nasazen pouze výměnou zastaveného Connectu; MCP host zůstal beze změny. Čeká se na místní souhlasy, login a párování.
+
+Ze snímku Iris Local je doložené tlačítko Spravovat, kde uživatel našel Znovu načíst nástroje. Po dokončeném obnovení stále viděl čtyři. Místní katalog prokazatelně nabízí pět a cloudový stavový nástroj vrací stejný eventId jako místní pomocník. Samostatná obnova MCP hosta narazila na přechodnou chybu registrace jobu; po dokončení ukončení a opakované registraci je host znovu ready. Následuje jediné nové obnovení katalogu nad novým spojením. Předání briefingu Aidou zatím není doložené.

@@ -15,6 +15,19 @@ Kalibrace porovnává výsledek s širším vzorkem, úplným aktivním seznamem
 
 UI rozsah od/do zahrnuje poslední místní den; vnitřní interval je `[půlnoc prvního dne, půlnoc po posledním dni)`. Dotýkající se události se vyloučí, nulová událost patří jen ke dni svého okamžiku. All-day se neurčuje podle názvu. Prázdný den změny času není živý test hraničních událostí; počet vzorků se vrací zvlášť. Syntetické testy pokrývají 23hodinový i 25hodinový den, datumovou obálku, překryvy a přesné bodové hranice. Prošlo 37 nativních testů. Živá kalibrace opravy 0.6.1 zatím čeká na nový místní souhlas a přihlášení; běžný kalendář zůstává zavřený.
 
+## Živá kalibrace 0.6.1 a navazující 0.6.2
+
+18. října 2026 v 18:59:55 Europe/Prague proběhla pevná read-only kalibrace po novém místním přihlášení potvrzeném Milošem. Podpis tokenu i čtení identity prošly. Příznak diagnostického tlačítka mfaConfirmedByUser byl false; uživatel potvrdil úspěch předepsaného postupu v chatu. Nezaměňovat tento příznak za automatické ověření MFA.
+
+- paddedWindowMatches, activeCoverageMatches, adjacentWindowsMatch a boundaryFilterMatches: true.
+- V širším vzorku sedm dayBlock a čtyři vícedenní položky.
+- Podzimní den změny času: 25 hodin, dstChecked=true, dstMatches=true, ale nula událostí; nejde o živý test události přes změnu času.
+- legacyDateOnlyMatchesUTCMidnight=false, proto verified=false a běžný kalendář zůstal zablokovaný.
+
+Výsledek vyvrátil předpoklad jediného serverového modelu, nikoli přesnost místního filtru. Verze 0.6.2 proto porovnává čtyři pevné modely: UTC/pražská půlnoc a UTC/pražský celý koncový den. Vrací seznam všech shod, bez předstíraného rozlišení při stejných datech. Úspěch vyžaduje shodu alespoň jednoho modelu i všechny ostatní dosavadní kontroly. Syntetický test prokazuje, že datumová obálka pokrývá požadovaný pražský den pro každý z těchto modelů, včetně obou změn času. Neznámá sémantika zůstane zablokovaná.
+
+I vnitřní datumová obálka musí splnit schválený limit 93 kalendářních dnů; příliš dlouhý výběr se po přičtení okrajů odmítne, nikoli rozšíří. Prošlo 38 nativních testů. Podepsaná 0.6.2 je nasazená, čeká na nové místní souhlasy a živou kalibraci. Nečekaná necommitnutá změna vracející ISO timestampy byla před opravou zachovaná do ignorovaného build/unexpected-read-policy-change.patch; Miloš neví o souběžné práci na projektu.
+
 ## Aktuální místní ověření – Connect 0.5.0
 
 18. října 2026 v 18:28 Europe/Prague po úspěšném přihlášení přes Aidu a Iris Local Miloš potvrdil nalezení vlastního prostoru, čtecí párování a úspěch nového nativního pilotu. Validovaný sanitizovaný záznam i přímé `IrisRead status` shodně potvrdily ok=true, paired=true a loginRequired=false. Čas aktualizace záznamu byl 18:28:13 Europe/Prague; nejde o opětovné použití starého výsledku.

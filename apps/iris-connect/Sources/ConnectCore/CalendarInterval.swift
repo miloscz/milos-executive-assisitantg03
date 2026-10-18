@@ -40,6 +40,21 @@ public struct CalendarInterval: Codable, Equatable {
         f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"
         return (f.string(from: first), f.string(from: ceiling))
     }
+    /// Finite hypotheses only: never guess a server time zone from a successful
+    /// HTTP response. The live diagnostic reports every matching model.
+    public static func dateModels(window: DateWindow) throws -> [(name: String, bounds: CalendarInterval)] {
+        var result: [(String, CalendarInterval)] = []
+        for (name, zone) in [("utc", "UTC"), ("prague", "Europe/Prague")] {
+            var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: zone)!
+            let f = DateFormatter(); f.calendar = cal; f.timeZone = cal.timeZone
+            f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"; f.isLenient = false
+            guard let lower = f.date(from: window.dateFrom), let to = f.date(from: window.dateTo),
+                  let afterTo = cal.date(byAdding: .day, value: 1, to: to) else { throw ReadFailure.schemaMismatch }
+            if lower < to { result.append((name + "Midnight", try .init(lower: lower, upper: to))) }
+            result.append((name + "InclusiveDay", try .init(lower: lower, upper: afterTo.addingTimeInterval(-0.001))))
+        }
+        return result
+    }
     public func includes(_ record: NormalizedRecord, documentedPredicate: Bool = false) throws -> Bool {
         let start = try Self.instant(record.startTime), end = try Self.instant(record.endTime)
         guard end >= start else { throw ReadFailure.schemaMismatch }
