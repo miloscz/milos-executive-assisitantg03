@@ -33,6 +33,8 @@ Aida ani její delegované úlohy nikdy přímo nevolají +4U: žádné jiné +4
 
 Aplikace `Iris MCP` je nativní host oficiálního Secure MCP Tunnel. Provozní OpenAI klíč se zadává jen do jejího soukromého pole a patří jen do její vlastní klíčenky; agent nesmí číst hodnoty, UI, clipboard, konfigurace s hodnotami klíčů nebo paměť. Klíč není AC1/AC2 a není to token +4U. Host ho interně předává pouze ověřenému procesu tunnel-client; MCP server dostává prázdné prostředí bez klíče. Sanitizovaný stav lze číst jen přes `python3 tools/iris-mcp-status.py`. Nečti obsah logů tunelu nebo administrátorských exportů. Nenastavuj logování surových požadavků.
 
+Host 0.2.1 používá soukromý zámek jedné instance a při běžném TERM/INT ukončí i samostatnou skupinu tunnel-client a stdio potomka. Při nasazení nejprve ověř ukončení všech jeho starých procesů; nestačí jen pgrep IrisMCPHost. Kontroluj pouze PID, rodiče, názvy a procesní skupiny, nikdy argumenty či prostředí s klíčem. Nepoužívej plošný pkill Node nebo jiné cizí procesy. Při změně hosta sestav nejprve --stage a proveď syntetický test-lifecycle.py; běžný bundle nepřepisuj za běhu. Živý restart 0.2.1 byl ověřený bez zbylých potomků a bez změny relace Iris Connect.
+
 Do připojení výhradně soukromého MCP pluginu a živého ověření neprohlašuj Aidu za přepnutou. Po přepnutí musí být odebrán její obecný přístup k Macu a ostatní +4U cesty. Automaticky nevytvářej veřejný tunel nebo sdílený workspace plugin jako náhradu. Ověření připravenosti tunelu samo nedokazuje připojení Aidy. Přístup k registrovaným nástrojům platformy a přímým +4U pluginům se ověřuje samostatně; instrukce nejsou vynucenou síťovou politikou celé platformy Dot.
 
 ## Místní ovládání přes Aidu

@@ -78,6 +78,8 @@ final class HostDelegate: NSObject, NSApplicationDelegate {
     private var generation = UUID()
     private var checking = false
     private var lastFailure: TunnelSetupFailure?
+    private let hostLease = HostLease()
+    private var terminationSignals: TerminationSignals?
     private let redirects = NoRedirect()
     private lazy var session: URLSession = {
         let c=URLSessionConfiguration.ephemeral; c.httpCookieStorage=nil;c.urlCredentialStorage=nil;c.urlCache=nil
@@ -86,6 +88,10 @@ final class HostDelegate: NSObject, NSApplicationDelegate {
     }()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        do { try FileManager.default.createDirectory(at:directory,withIntermediateDirectories:true,attributes:[.posixPermissions:0o700]) }
+        catch { NSApp.terminate(nil); return }
+        guard hostLease.acquire(at: directory.appendingPathComponent("host.lock").path) else { NSApp.terminate(nil); return }
+        terminationSignals = TerminationSignals { Task { @MainActor in NSApp.terminate(nil) } }
         NSApp.setActivationPolicy(.regular)
         window=NSWindow(contentRect:NSRect(x:0,y:0,width:660,height:560),styleMask:[.titled,.closable,.miniaturizable],backing:.buffered,defer:false)
         window.isReleasedWhenClosed=false
@@ -166,7 +172,10 @@ final class HostDelegate: NSObject, NSApplicationDelegate {
         receipt("failed")
     }
     @objc private func stop() {
-        generation=UUID();timer?.invalidate();timer=nil;worker?.terminate();worker=nil;ready=false;checking=false
+        guard hostLease.isHeld else { return }
+        generation=UUID();timer?.invalidate();timer=nil
+        if let worker { WorkerLifecycle.stop(worker) }
+        worker=nil;ready=false;checking=false
         key.stringValue="";lastFailure=nil;message.stringValue="Tunel je zastavený.";receipt("stopped")
     }
     @objc private func forget() {

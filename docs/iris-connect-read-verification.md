@@ -96,3 +96,7 @@ U diáře doložit inkluzivitu hranic, interpretaci dat vůči místní časové
 Při pilotu 0.2.0 uživatel musel ručně zvolit **Přihlásit pomocí Plus4U Access**. Verze 0.2.1 přidává bezpečně omezenou jednorázovou volbu uvnitř nativní aplikace; [záznam přihlášení](iris-connect-verification.md) eviduje její samostatné ověření. Nástroje agenta přihlašovací UI ovládat nesmějí. Zahájení přihlášení přes Aidu a její upozornění před MFA zatím implementované nejsou.
 
 Samostatná služba `iris-core` dosud neexistuje; přibalený `IrisRead` je první místní klient pro ověření rozhraní. Aida se k němu nepřipojuje přímo. Přibalený JSON není obecný konfigurovatelný vykonávač commandů a změna jeho obsahu operace nerozšíří.
+
+## Doručovací cesta po prvním neúspěchu Aidy
+
+Aida v 19:19 hlásila invalidRequest. Nativní kalendář a místní briefing fungovaly; cloudový test chybu zopakoval. Diagnostika pouze metadat procesů odhalila tři staré osiřelé tunely/MCP procesy. Po odstranění a čistém spojení skutečný cloudový iris_get_morning_briefing uspěl. Opravený host 0.2.1 prošel syntetickými životnostními testy i živým restartem bez přeživších potomků. Následný cloudový stav i briefing uspěly s datem 19. října, verified a počty 11/3/2; první volání po restartu mělo přechodný timeout. Problém doručovací cesty se neřešil změnou kalendářního kontraktu ani novým MFA. Skutečné předání Aidou po opravě zatím čeká na potvrzení.
