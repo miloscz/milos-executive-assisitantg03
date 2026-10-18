@@ -1,5 +1,7 @@
 # Iris Connect místní prototyp
 
+**Aktuální stav, 18. října večer:** nasazená 0.7.7, čeká na místní souhlasy a živý důkaz neprázdného textu schůzky. Síťové čtení Elementary je ověřené v 0.7.6; níže uvedené starší stavy jsou historie. Oprava rich-text polí prošla 68 syntetickými testy. Aida dál používá jen pět omezených MCP nástrojů.
+
 **Historie 0.6.1 – čtecí kalibrace kalendáře:** po chybě pokusu s ISO timestampy používá pouze date-only YYYY-MM-DD. Pražské intervaly obalí UTC dny, přebytečné záznamy filtruje nativně. Pevný `IrisRead diagnostics.calendarBoundaries` porovná širší okno, aktivní blokující záznamy, sousední dny, místní filtr na existující události a dostupný den změny času. Vrátí pouze počty a příznaky; bez shody povinných kontrol nepovolí běžné calendar.list. Nezapisuje testovací události. Prošlo 37 syntetických testů; následný živý výsledek vedl k doplnění 0.6.2 popsanému níže. [Doložené výsledky a limity](../../docs/iris-connect-read-verification.md).
 
 **0.6.2 – rozlišení koncového dne:** kalibrace 0.6.1 potvrdila pokrytí a filtrování, ale nepotvrdila předpoklad serverové UTC půlnoci. Nový pevný test porovná UTC/pražskou půlnoc i zahrnutí celého koncového dne a vrátí všechny shodné modely. Neznámý výsledek nepovolí provozní kalendář. I obalený HTTP dotaz musí dodržet 93denní limit. Prošlo 38 syntetických testů. Živá kalibrace 18. října v 19:17:25 Europe/Prague uspěla; shodují se oba modely celého koncového dne, zónu vzorek nerozlišuje. Běžné calendar.list v této relaci prošlo. Délka dne změny času má 25 hodin, ale bez živých událostí nelze tvrdit test jejich přechodu.
@@ -171,3 +173,11 @@ Pevná diagnostika může navíc vrátit 12 omezených počtů tvarů kontejner�
 ### Dokumentovaný seznam odmítnutých klíčů – 0.7.6
 
 0.7.5 živě neprošel: pevná diagnostika ukázala objekt paramMap bez dosud podporovaných kontejnerů. Lokální dokumentace uuAppServer (`errors-and-warnings.md`, část uuAppErrorMap) uvádí paramMap.unsupportedKeyList. 0.7.6 rozpoznává tento dokumentovaný seznam při zachování stejného omezení aliasů, vazeb a jednorázového pilotního zúžení. Neznámé parametry nebo error severity zůstávají chybou. Prošlo 66 syntetických testů; živý důkaz 0.7.6 zatím chybí.
+
+
+Živý pilot 0.7.6 po lidském MFA úspěšně načetl jednu Elementary hlavní stránku. Dokumentované unsupportedKeyList odmítalo pouze oid a bid; pilot odstranil tyto dva aliasy a zachoval meetingId/id i uuEccPage.oid/uuEccPage.bid se stejnými identifikátory. Přesný užší GET prošel bez varování a s validní strukturou stránky. Současně prošly všechny čtyři ManagementKit typy na 1/1/4/1 stranách a kalendářní hranice. Tím je doložen první vlastní Elementary kontrakt; úplnost všech schůzek musí dál posoudit běžná dávka a obsahová příprava.
+
+
+### Vnořené textové podklady – 0.7.7
+
+Síťový kontrakt 0.7.6 prošel i v běžné dávce (15 Elementary meeting stránek), ale jejich převod vrátil téměř prázdné texty. Původní čtečka i znalostní dokumentace podporují RichText.Block uu5String/uu5string jako pole uzlů, které dosavadní nativní převod ignoroval. 0.7.7 přidává tuto dokumentovanou datovou větev s dosavadními hloubkovými/textovými limity. Nic nerenderuje, neprovádí komponenty a nepřidává síťové operace. Nepodporovaný typ už nezůstává tiše úplný. Celý blok se zadrží při citlivém poduzlu a spojený text projde novou kontrolou. Prošlo 68 syntetických testů. Kontrolní živá schůzka je Meetings AI records tool; skutečný neprázdný text teprve musí potvrdit nový běh po místním souhlasu.

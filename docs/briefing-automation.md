@@ -1,5 +1,7 @@
 # Automatická příprava a ranní obnova
 
+**Aktuální stav večer 18. října:** síťové čtení Elementary prošlo pilotem i běžnou dávkou (15 schůzek). Oprava převodu vnořeného rich-text obsahu v nasazené 0.7.7 čeká na místní souhlasy a živou kontrolu. Pondělní briefing byl obnoven a přes Iris Local ověřen jako current/partial se 14 kartami a dvěma obsahově připravenými rozhodnutími. Podklady Elementary se zatím nevydávají za připravené. Podrobnosti jsou v [záznamu ověření](iris-connect-read-verification.md).
+
 Miloš 18. října 2026 zadal automatizaci a potvrdil časy **18:00 a 7:00 v pracovní dny, Europe/Prague**. V 18:00 se připravuje následující pracovní den (v pátek pondělí), v 7:00 dnešní den. Víkend není automaticky pracovní den; státní svátky zatím nemají vlastní kalendář.
 
 Iris vlastní práci, podklady a frontu. Aida pouze čte připravený výstup a řeší komunikaci včetně upozornění na MFA. Naplánovaný běh, obnovení procesu ani nové čtení nejsou souhlasem s MFA. Po přihlášení se musí bezpečně obnovit čtecí vazba pouze ke stejnému potvrzenému účtu/prostoru a stejnému podepsanému klientovi.

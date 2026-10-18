@@ -56,6 +56,20 @@ final class SourcePolicyTests: XCTestCase {
         }
         XCTAssertEqual(SourcePolicy.documentLinks(base + "/meeting?oid=" + oid), [])
     }
+    func testRichTextJSONArraysPreserveTextAndBoundsWithoutExportingSplitSecrets() {
+        for tag in ["UU5.RichText.Block","Uu5RichTextBricks.Block"] {
+            for key in ["uu5String","uu5string"] {
+                let value=SourcePolicy.nodeText(["tag":tag,"props":[key:["Agenda",["tag":"UU5.Bricks.P","children":["Current decision"]]]]])
+                XCTAssertEqual(value.text,"Agenda Current decision");XCTAssertFalse(value.incomplete)
+            }
+        }
+        let secret=SourcePolicy.nodeText(["tag":"UU5.RichText.Block","props":["uu5string":["AC1=","synthetic-only"]]])
+        XCTAssertTrue(secret.incomplete);XCTAssertFalse(secret.text.contains("synthetic-only"))
+        let large=SourcePolicy.nodeText(["tag":"Uu5RichTextBricks.Block","props":["uu5String":Array(repeating:"Fact",count:1001)]])
+        XCTAssertTrue(large.incomplete);XCTAssertLessThanOrEqual(large.text.count,16000)
+        let wrong=SourcePolicy.nodeText(["tag":"UU5.RichText.Block","props":["uu5string":["unexpected":"value"]]])
+        XCTAssertTrue(wrong.incomplete)
+    }
     func testReadBindingRequiresSameAccountWorkspaceAndBothSignatures() {
         let workspace = "https://uuapp.plus4u.net/uu-myterritory-dwg01/" + String(repeating: "c", count: 32)
         let app = String(repeating: "a", count: 40), helper = String(repeating: "b", count: 40)

@@ -106,6 +106,22 @@ final class SourceReaderTests: XCTestCase {
         do { _ = try await r.load(em,recordId:"synthetic");XCTFail("contradictory echo") }
         catch let error as SourceShapeFailure { XCTAssertEqual(error.stage,.elementaryPage);XCTAssertEqual(error.flags,[true,false,true,true]) }
     }
+    func testElementaryRichTextArraysKeepCurrentPreparationSeparateFromMinutes() async throws {
+        let r=reader()
+        SourceProtocol.handler = { request in
+            if request.url!.path.hasSuffix("meeting/load") { return ["id":self.oid,"uuEccMainPage":self.page,"uuEccRoot":["bid":self.oid]] }
+            return ["panels":["mainPanel":["sectionList":[
+                ["section":["content":[["tag":"UuElementaryManagement.Meeting.DetailPreparation"]]]],
+                ["section":["content":[["tag":"UU5.RichText.Block","props":["uu5string":[["tag":"UU5.Bricks.P","children":["Current documented agenda"]]]]]]]],
+                ["section":["content":[["tag":"UuElementaryManagement.Meeting.DetailMinutes"]]]],
+                ["section":["content":[["tag":"Uu5RichTextBricks.Block","props":["uu5String":["Separate minutes"]]]]]]
+            ]]]]
+        }
+        let value=try await r.load(elementaryTarget(),recordId:"synthetic")
+        XCTAssertEqual(value.preparationText,"Current documented agenda")
+        XCTAssertEqual(value.minutesText,"Separate minutes");XCTAssertTrue(value.complete)
+        XCTAssertEqual(SourceProtocol.paths.count,2)
+    }
     func elementaryTarget() throws -> SourceTarget {
         try SourceTarget(sourceURL:"https://uuapp.plus4u.net/uu-elementarymanagement-maing01/"+String(repeating:"a",count:32)+"/meetingDetail?id="+oid)
     }

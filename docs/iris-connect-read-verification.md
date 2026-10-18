@@ -1,5 +1,9 @@
 # Ověření čtecího rozhraní Iris Connect
 
+## Aktuální stav
+
+Elementary commandy prošly pilotem i běžnou dávkou v 0.7.6. Převod textu ale ignoroval dokumentovaná vnořená rich-text pole. Opravná 0.7.7 je podepsaná a nasazená po bezpečném ukončení předchozí aplikace; čeká na nové místní souhlasy a živé ověření kontrolní schůzky Meetings AI records tool. Záloha 0.7.6 je zachovaná, schválené politiky i MCP beze změny. Poslední cloudově ověřený briefing pro 19. října je current/partial, 14 karet, dvě připravená rozhodnutí; neprázdné aktuální podklady Elementary ještě nejsou doložené. Podrobné důkazy a historie následují.
+
 ## Historie opravy časových hranic 0.6.1
 
 Primární dokumentace dohledaná přes uuKnowledgeBase:
@@ -151,3 +155,19 @@ Následná kontrola lokální dokumentace uuAppServer Errors and warnings nalezl
 
 
 Podepsaná 0.7.6 byla po ověření obou schválených hashů, nepřítomnosti dočasného diagnostického prostředku a busy=false nasazená přes správce služeb. Předchozí 0.7.5 je zachovaná jako záloha; MCP host nebyl restartovaný. Nový proces běží, čeká na místní souhlasy a lidské přihlášení. V tomto bodě se nový briefing nepublikoval a čtení Elementary nebylo prohlášené za ověřené. Samostatně prošlo všech 11 testů pracovního jádra včetně obnovení již publikované úlohy bez vytvoření nové a bez automatického MFA.
+
+
+## Úspěšný živý pilot 0.7.6
+
+Po místním obnovení souhlasů a lidském přihlášení/MFA prošla kontrola kalendářních hranic. Elementary pilot následně úspěšně načetl jednu hlavní stránku; parameterNames=[oid,bid] dokládá zúžení právě o tyto dva explicitně odmítnuté aliasy. Zachované meetingId/id i uuEccPage.oid/uuEccPage.bid mají stejné nativně získané hodnoty. Příčinou byl dokumentovaný seznam paramMap.unsupportedKeyList, který původní parser neznal, a nadbytečné aliasy oid/bid. Nešlo o renderování stránky, neplatné přihlášení nebo potřebu jiného commandu.
+
+ManagementKit meeting/document/keyTask/request současně prošly na 1/1/4/1 stranách. Pilot nevrátil žádné materiály ani autentizační údaje. Kontroly byly soukromě uložené k nezměněné aktuální relaci; neprováděl se login ani MFA nástroji agenta. To je živý důkaz kontraktu prvního vybraného vlastního Elementary meeting, nikoli úplnosti obsahu všech schůzek. Následuje běžné sources.prepare se stejným ověřeným profilem a obsahová příprava pondělního briefingu.
+
+
+## Běžná dávka 0.7.6 a převod textu
+
+Běžné sources.prepare se stejným ověřeným profilem úspěšně načetlo 24 materiálů / 34 stran, z toho 15 Elementary meeting stránek. U těchto 15 byl výstup přípravy a zápisu téměř prázdný (14 bez textu, jedna příprava jen dva znaky). To není důkaz, že server obsahuje prázdné podklady. Miloš uvedl kontrolní schůzku „Meetings AI record tools“, v kalendáři „Meetings AI records tool“, kde podklady očekává.
+
+Porovnání s původní technickou čtečkou a lokální znalostní dokumentací Uu5RichTextBricks.Block prokázalo podporovaný typ uu5String = string | [string | object]. Dosavadní nativní převod četl tuto vlastnost jen jako string, takže pole ignoroval. Zdrojová 0.7.7 doplňuje omezenou rekurzi pouze dokumentovaných uu5String/uu5string polí známých RichText.Block tagů, bez renderování, s limity 1000 uzlů, hloubkou 20 a 16000 znaky. Neznámý tvar se označuje jako neúplný. Spojený text se znovu kontroluje; při citlivém dítěti se zadrží celý blok, aby nezůstaly sousední fragmenty. Prošlo 47 Core + 21 Native testů včetně skutečného typu pole a oddělení přípravy/zápisu. Živý důkaz neprázdného aktuálního textu zatím chybí.
+
+Před novým nativním buildem byl z čerstvé dávky publikovaný pondělní briefing se dvěma znovu posouzenými rozhodovacími analýzami a ověřenými citacemi. Skutečný cloudový Iris Local vrátil current, 19. října, verified, 11 bloků, 14 karet, 2 prepared a partial. Čas zdrojů agendy 21:24:58 Europe/Prague, načítání podkladů skončilo 21:28:20. Prázdné výňatky Elementary nejsou označené za obsahově připravené.

@@ -46,6 +46,7 @@ public struct SourceTarget: Equatable {
 }
 
 public enum SourcePolicy {
+    private static let withheldText = "[Obsah byl zadržen kvůli možným přístupovým údajům.]"
     public static let id = "iris-connect-briefing-sources-v1"
     public static let approvedSHA256 = "85f464e2bf73f5435ef818ec0c98ae65697ea7ab35fc344ef9450d2d16c345e6"
     public static func validElementaryOmissions(_ names:Set<String>) -> Bool {
@@ -107,7 +108,7 @@ public enum SourcePolicy {
             .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines)
         // Fail closed for likely secret-bearing source text, without returning the value.
         if text.range(of: "(?i)\\bsk-[a-z0-9_-]{16,}|\\beyJ[a-z0-9_-]{20,}\\.[a-z0-9_-]+\\.|Bearer\\s+\\S+|(?:access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|accessCode[12]|AC[12]|authorization|cookie)\\s*[:=]", options: .regularExpression) != nil {
-            return ("[Obsah byl zadržen kvůli možným přístupovým údajům.]", true)
+            return (withheldText, true)
         }
         if !links.isEmpty { text += " Podklady: " + links.joined(separator: " ") }
         return (String(text.prefix(limit)), unsupported || text.count > limit)
@@ -132,19 +133,33 @@ public enum SourcePolicy {
             "UU5.Bricks.P", "UU5.Bricks.Div", "UU5.Bricks.Span", "UU5.Bricks.Strong", "UU5.Bricks.B", "UU5.Bricks.Em", "UU5.Bricks.I", "UU5.Bricks.Ul", "UU5.Bricks.Ol", "UU5.Bricks.Li", "UU5.Bricks.Br", "UU5.Bricks.Link", "UU5.Bricks.Header", "UU5.Bricks.Code",
             "Uu5Bricks.Section", "Uu5Bricks.Link", "Uu5RichTextBricks.Block", "UU5.RichText.Block", "Uu5Elements.Heading", "Uu5Elements.Paragraph", "Uu5Elements.Text", "Uu5Elements.Link", "Uu5CodeKitBricks.Markdown", "Uu5CodeKit.Markdown", "UU5.CodeKit.Markdown"])
         if !allowed.contains(tag) { partial = true }
-        for key in ["header", "uu5String", "uu5string", "content", "value"] {
-            if let value = props[key] as? String { let converted = text(value, limit: 16000); result.append(converted.text); partial = partial || converted.incomplete }
-        }
-        if let children = object["children"] as? [Any] {
-            if children.count > 1000 { partial = true }
-            for child in children.prefix(1000) {
+        func appendNodes(_ nodes:[Any]) {
+            if nodes.count > 1000 { partial = true }
+            for child in nodes.prefix(1000) {
                 let converted = nodeText(child, depth: depth + 1); result.append(converted.text); partial = partial || converted.incomplete
                 if result.reduce(0, { $0 + $1.count }) > 16000 { partial = true; break }
             }
         }
+        for key in ["header", "uu5String", "uu5string", "content", "value"] {
+            guard let value=props[key] else { continue }
+            if let string=value as? String {
+                let converted = text(string, limit: 16000); result.append(converted.text); partial = partial || converted.incomplete
+            } else if ["UU5.RichText.Block","Uu5RichTextBricks.Block"].contains(tag),
+                      ["uu5String","uu5string"].contains(key), let nodes=value as? [Any] {
+                // Documented rich-text JSON; decode data only, never components.
+                appendNodes(nodes)
+            } else { partial = true }
+        }
+        if let children = object["children"] as? [Any] { appendNodes(children) }
+        else if object["children"] != nil { partial = true }
         for key in ["href", "src"] { if let value = props[key] as? String { result += documentLinks(value) } }
+        // Withhold the whole block if a child was sensitive; do not append
+        // adjacent fragments after replacing only its credential marker.
+        if result.contains(where: { $0.contains(withheldText) }) { return (withheldText,true) }
         let joined = result.joined(separator: " ")
-        return (String(joined.prefix(16000)), partial || joined.count > 16000)
+        // Recheck the combined text as sensitive patterns may span child nodes.
+        let converted=text(joined,limit:16000)
+        return (converted.text, partial || converted.incomplete)
     }
 }
 
