@@ -22,3 +22,7 @@ node services/iris-mcp/scripts/briefing-smoke.mjs
 ```
 
 Unit testy jsou syntetické. Smoke čte jen již připravený briefing skutečným sandboxovaným MCP a vypisuje pevná metadata, ne přihlašovací údaje.
+
+## První živý výsledek
+
+18. října 2026 po úspěšné kalibraci Connect 0.6.2 vznikl briefing na pondělí 19. října s ověřeným kalendářem: 11 bloků, tři priority, dva konflikty. Přečtení přes skutečné omezené stdio MCP uspělo s coverage=verified a freshness=current. Nejstarší zdroj byl načten v 19:17:13 Europe/Prague; jde o večerní přípravu, kterou je před ranním použitím nutné aktualizovat. Nejde o načtené detailní podklady nebo již uskutečněná rozhodnutí. Doručení hlavní Aidou se ověřuje zvlášť.

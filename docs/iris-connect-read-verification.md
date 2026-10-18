@@ -1,6 +1,6 @@
 # Ověření čtecího rozhraní Iris Connect
 
-## Ověření časových hranic – oprava 0.6.1
+## Historie opravy časových hranic 0.6.1
 
 Primární dokumentace dohledaná přes uuKnowledgeBase:
 
@@ -13,7 +13,7 @@ Oprava 0.6.1 posílá pouze doložený formát datumů YYYY-MM-DD. Místní inte
 
 Kalibrace porovnává výsledek s širším vzorkem, úplným aktivním seznamem, sousedními dny a filtrováním na začátku existující události. Zvlášť porovnává neobalený date-only dotaz s doloženým DAO predikátem nad UTC půlnocemi; bez shody nepovolí běžná kalendářní data. `boundaryFilterMatches` znamená přesný místní filtr nad širším čtením, nikoli odeslání časové hranice serveru. Shody jsou důkazem pro aktuální živý vzorek, nikoli garantovaným serverovým snapshotem nebo všeobecným důkazem nezdokumentované sémantiky. Platí jen do nové relace/restartu.
 
-UI rozsah od/do zahrnuje poslední místní den; vnitřní interval je `[půlnoc prvního dne, půlnoc po posledním dni)`. Dotýkající se události se vyloučí, nulová událost patří jen ke dni svého okamžiku. All-day se neurčuje podle názvu. Prázdný den změny času není živý test hraničních událostí; počet vzorků se vrací zvlášť. Syntetické testy pokrývají 23hodinový i 25hodinový den, datumovou obálku, překryvy a přesné bodové hranice. Prošlo 37 nativních testů. Živá kalibrace opravy 0.6.1 zatím čeká na nový místní souhlas a přihlášení; běžný kalendář zůstává zavřený.
+UI rozsah od/do zahrnuje poslední místní den; vnitřní interval je `[půlnoc prvního dne, půlnoc po posledním dni)`. Dotýkající se události se vyloučí, nulová událost patří jen ke dni svého okamžiku. All-day se neurčuje podle názvu. Prázdný den změny času není živý test hraničních událostí; počet vzorků se vrací zvlášť. Syntetické testy pokrývají 23hodinový i 25hodinový den, datumovou obálku, překryvy a přesné bodové hranice. Prošlo 37 nativních testů. Následující oddíly zaznamenávají živou kalibraci 0.6.1 a úspěšnou navazující 0.6.2.
 
 ## Živá kalibrace 0.6.1 a navazující 0.6.2
 
@@ -26,7 +26,21 @@ UI rozsah od/do zahrnuje poslední místní den; vnitřní interval je `[půlnoc
 
 Výsledek vyvrátil předpoklad jediného serverového modelu, nikoli přesnost místního filtru. Verze 0.6.2 proto porovnává čtyři pevné modely: UTC/pražská půlnoc a UTC/pražský celý koncový den. Vrací seznam všech shod, bez předstíraného rozlišení při stejných datech. Úspěch vyžaduje shodu alespoň jednoho modelu i všechny ostatní dosavadní kontroly. Syntetický test prokazuje, že datumová obálka pokrývá požadovaný pražský den pro každý z těchto modelů, včetně obou změn času. Neznámá sémantika zůstane zablokovaná.
 
-I vnitřní datumová obálka musí splnit schválený limit 93 kalendářních dnů; příliš dlouhý výběr se po přičtení okrajů odmítne, nikoli rozšíří. Prošlo 38 nativních testů. Podepsaná 0.6.2 je nasazená, čeká na nové místní souhlasy a živou kalibraci. Nečekaná necommitnutá změna vracející ISO timestampy byla před opravou zachovaná do ignorovaného build/unexpected-read-policy-change.patch; Miloš neví o souběžné práci na projektu.
+I vnitřní datumová obálka musí splnit schválený limit 93 kalendářních dnů; příliš dlouhý výběr se po přičtení okrajů odmítne, nikoli rozšíří. Prošlo 38 nativních testů. Podepsaná 0.6.2 byla nasazená; úspěch navazující živé kalibrace je doložený níže. Nečekaná necommitnutá změna vracející ISO timestampy byla před opravou zachovaná do ignorovaného build/unexpected-read-policy-change.patch; Miloš neví o souběžné práci na projektu.
+
+## Úspěšná živá kalibrace 0.6.2 – 18. října 2026
+
+Miloš potvrdil místní souhlasy, nové přihlášení s MFA a čtecí párování i pět nástrojů v obnoveném katalogu Iris Local. Pevná kalibrace skončila v **19:17:25 Europe/Prague** s `verified=true`.
+
+- paddedWindowMatches=true, activeCoverageMatches=true, adjacentWindowsMatch=true, boundaryFilterMatches=true.
+- matchingDateModels=[utcInclusiveDay, pragueInclusiveDay]. Vzorek odpovídá zahrnutí celého koncového dne, ale nerozlišuje UTC a pražskou zónu. Adaptér netvrdí, že tuto nejednoznačnost odstranil; datumová obálka bezpečně pokrývá oba modely a přesný místní filtr určuje veřejný interval.
+- Sedm dayBlock a čtyři vícedenní položky v širším vzorku.
+- dstChecked=true, dstDayHours=25, dstMatches=true, dstRecords=0. Délka dne je správně; živá událost přes přechod času tím ověřená není.
+- legacyDateOnlyMatchesUTCMidnight=false zůstává poctivě uvedené pozorování, nikoli chyba ignorovaná pro úspěch. Úspěch vychází z ověřených modelů celého koncového dne a ostatních povinných srovnání.
+
+Běžné calendar.list se tím povolilo pro tuto relaci. Následný skutečný compiler přes podepsaný IrisRead načetl cílový kalendář pro 19. října a vytvořil briefing s calendarCoverage=verified, 11 bloky, třemi prioritami a dvěma souběhy. Skutečný sandboxovaný MCP nástroj vrátil stejná metadata s freshness=current. Nejstarší použitý zdroj byl načten 18. října v 19:17:13 Europe/Prague. Toto je večerní příprava na pondělí; ráno je nutné obnovit podklady, jinak se výstup po 30 minutách označí stale.
+
+Platnost kalibrace končí novou relací či restartem. Konzistence zůstává bestEffort, ne serverový snapshot. Finální záznamy a jejich význam pro dokončení zůstávají contractPending. Úplné podklady zdrojových dokumentů nejsou načtené. Skutečné přednesení Aidou se eviduje samostatně; obnovený katalog ani místní smoke ho nedokládají.
 
 ## Aktuální místní ověření – Connect 0.5.0
 

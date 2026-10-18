@@ -25,7 +25,7 @@ Systém proto plánuje zpětně od termínů, začne vlastní přípravu s před
 | Společné schůzky | Záměr přesunu schválí Miloš přes Aidu; domluvu s dalšími účastníky řeší Adéla Babicová přes Signal. |
 | Přístup k +4U | Nativní macOS proxy drží Access Code 1 a 2 v klíčence a nevydává je agentům. Registrace nové aplikace není pro Miloše dostupná. |
 | MFA | Potřebné přihlášení se oznámí přes Aidu. MFA potvrzuje Miloš. Po zmeškaném pokusu lze na jeho pokyn spustit nový. |
-| Operace proxy | Proxy může provádět čtecí i zapisovací operace, ale jen prostřednictvím výslovně schválené sady uuCommandů a pravidel parametrů. Konkrétní sada ještě není schválená. |
+| Operace proxy | Proxy může provádět čtecí i zapisovací operace, ale jen prostřednictvím výslovně schválené sady uuCommandů a pravidel parametrů. Čtecí sada iris-connect-read-v1 byla schválená 18. října 2026; pracovní zápisy zatím povolené nejsou. |
 | Cílový projekt | Nová Iris se buduje a bude udržována v tomto repozitáři. |
 | Provozní počítač | Po výpadku správy Mini Miloš rozhodl nejprve rozjet provoz na tomto Macu; přenos na Mini dokončíme později. Místní host dostane samostatný soukromý tunel. Aida bude používat vždy jen výslovně zvolený omezený plugin. |
 
