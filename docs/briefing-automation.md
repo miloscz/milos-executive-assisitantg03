@@ -2,6 +2,8 @@
 
 **Aktuální stav večer 18. října:** oprava Elementary je v 0.7.7 živě ověřená včetně textu kontrolní schůzky. Nový pondělní briefing je přes Iris Local current/partial: 14 karet, pět obsahových analýz a sedm ověřených citací. Zdroje agendy jsou od 21:39:23, dávka podkladů skončila 21:42:39 Europe/Prague. Neúplné převody, nenačtené přílohy a další schůzky bez použitelného výňatku zůstávají označené. Rozvrhy a omezené MCP se neměnily. Podrobnosti jsou v [záznamu ověření](iris-connect-read-verification.md).
 
+Pro první ranní ověření 19. října je technický sběr přesunutý na 6:40. Aida podle Milošova předaného potvrzení uložené rutiny kontroluje přístup v 6:45 a předává briefing v 7:00; večerních 18:00 zůstává. Dokončení po MFA má kontrolní běhy i před 7:00. Dočasný dohled 7:05–7:20 odděleně ověří aktuálnost a skutečné doručení; dosud je výsledek pending. Přesná kritéria a meze důkazu jsou v oddílu Ověření prvního rána v [runbooku](briefing-runbook.md).
+
 Miloš 18. října 2026 zadal automatizaci a potvrdil časy **18:00 a 7:00 v pracovní dny, Europe/Prague**. V 18:00 se připravuje následující pracovní den (v pátek pondělí), v 7:00 dnešní den. Víkend není automaticky pracovní den; státní svátky zatím nemají vlastní kalendář.
 
 Iris vlastní práci, podklady a frontu. Aida pouze čte připravený výstup a řeší komunikaci včetně upozornění na MFA. Naplánovaný běh, obnovení procesu ani nové čtení nejsou souhlasem s MFA. Po přihlášení se musí bezpečně obnovit čtecí vazba pouze ke stejnému potvrzenému účtu/prostoru a stejnému podepsanému klientovi.
