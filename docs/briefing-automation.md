@@ -59,4 +59,7 @@ První běh pro pondělí 19. října načetl 9 podkladů / 19 stránek, publiko
 
 Miloš předal potvrzení Aidy o uložené jediné rutině Po–Pá v 7:00/18:00 Europe/Prague od 19. října, s doručením do hlavního chatu a pouze Iris Local. Aida následně přislíbila i opakování kontroly starých zdrojů po třech minutách, nejvýše dvacet minut. První skutečný plánovaný běh, nové obnovení čtecí vazby po další MFA a hlasový rozhovor se ještě musí provozně ověřit. Nejde o doklad již uskutečněného ranního doručení.
 
-Ověření implementace: 57 nativních syntetických testů, 10 testů jádra, 15 testů MCP včetně skutečného OS omezení sítě/souborů/procesů a 6 testů správce spuštění. Fronta testuje restart, duplicity a zákaz startu MFA; živé přihlášení potvrzoval člověk. LaunchAgenty Connect, MCP a pracovní fronty jsou nyní spuštěné. Žádná automatizace ani proces jádra nemá cestu k hodnotám přihlašovacích údajů.
+Ověření implementace: 57 nativních syntetických testů, 10 testů jádra, 15 testů MCP včetně skutečného OS omezení sítě/souborů/procesů a 8 testů správce spuštění včetně ochrany proti nečinnému uspání při AC. Fronta testuje restart, duplicity a zákaz startu MFA; živé přihlášení potvrzoval člověk. LaunchAgenty Connect, MCP a pracovní fronty jsou nyní spuštěné. Žádná automatizace ani proces jádra nemá cestu k hodnotám přihlašovacích údajů.
+
+
+Místní provoz doplňuje samostatná ochrana proti nečinnému uspání pouze při napájení ze sítě, protože výchozí uspání bylo nastavené na jednu minutu. Nemění systémová nastavení a nezabraňuje zamčení/vypnutí displeje. První živá kontrola prokázala uvolněnou ochranu při baterii; AC aktivaci je potřeba doložit po připojení nabíječky. [Postup a odstranění](briefing-runbook.md#dostupnost-tohoto-macu).

@@ -11,9 +11,30 @@ import json
 module = importlib.util.spec_from_file_location('startup', Path(__file__).parents[1] / 'deployment/mac-mini-startup.py')
 startup = importlib.util.module_from_spec(module)
 module.loader.exec_module(startup)
+power_module=importlib.util.spec_from_file_location('awake',Path(__file__).parents[1]/'deployment/iris-awake.py')
+awake=importlib.util.module_from_spec(power_module);power_module.loader.exec_module(awake)
 
 
 class StartupSecurityTests(unittest.TestCase):
+    def test_ac_guard_only_prevents_idle_sleep_and_releases_on_battery(self):
+        from unittest.mock import Mock
+        child=Mock();child.poll.return_value=None
+        with patch.object(awake.subprocess,'Popen',return_value=child) as spawn:
+            guard=awake.Guard();guard.refresh(True);guard.refresh(True)
+            spawn.assert_called_once()
+            self.assertEqual(spawn.call_args.args[0],['/usr/bin/caffeinate','-i','-w',str(os.getpid())])
+            self.assertEqual(spawn.call_args.kwargs['env'],{'PATH':'/usr/bin:/bin'})
+            guard.refresh(False);child.terminate.assert_called_once();self.assertIsNone(guard.child)
+        spec=startup.awake_spec(Path('/synthetic/repo'))
+        self.assertEqual(spec['Label'],startup.AWAKE)
+        self.assertEqual(spec['ProgramArguments'],['/usr/bin/python3','-E','-s','/synthetic/repo/tools/deployment/iris-awake.py'])
+        self.assertNotIn('EnvironmentVariables',spec)
+
+    def test_ac_detection_fails_closed_on_battery_or_unknown_output(self):
+        for value,expected in [(b"Now drawing from 'AC Power'\n",True),(b"Now drawing from 'Battery Power'\n",False),(b'',False),(b'unknown',False)]:
+            with patch.object(awake.subprocess,'run',return_value=SimpleNamespace(returncode=0,stdout=value)):
+                self.assertEqual(awake.on_ac(),expected)
+
     def test_worker_can_only_resume_fixed_local_workflow_without_shell_or_secrets(self):
         spec=startup.worker_spec(Path('/synthetic/repo'))
         self.assertEqual(spec['ProgramArguments'],['/usr/bin/python3','-E','-s','/synthetic/repo/services/iris-core/workflow.py','watch'])

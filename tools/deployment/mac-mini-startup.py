@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Manage only the two Iris GUI LaunchAgents, without secrets or system daemons."""
+"""Manage fixed Iris user LaunchAgents, without secrets or system daemons."""
 import argparse
 import json
 import os
@@ -16,6 +16,16 @@ JOBS = {
     'net.iris.mcp-host.login': ('Iris MCP.app', 'IrisMCPHost'),
 }
 WORKER = 'net.iris.briefing-worker'
+AWAKE = 'net.iris.awake-on-ac'
+
+
+def awake_spec(repo):
+    value=worker_spec(repo)
+    return {**value,'Label':AWAKE,'ProgramArguments':['/usr/bin/python3','-E','-s',str(repo/'tools/deployment/iris-awake.py')]}
+
+
+def expected_spec(repo,label):
+    return worker_spec(repo) if label==WORKER else awake_spec(repo) if label==AWAKE else spec(repo,label)
 
 
 def worker_spec(repo):
@@ -72,16 +82,16 @@ def status(repo, folder):
     loaded = {}
     for line in result.stdout.decode('utf-8', errors='replace').splitlines():
         columns = line.split()
-        if len(columns) == 3 and columns[2] in {*JOBS,WORKER}:
+        if len(columns) == 3 and columns[2] in {*JOBS,WORKER,AWAKE}:
             loaded[columns[2]] = {
                 'running': columns[0].isdigit(),
                 'pid': int(columns[0]) if columns[0].isdigit() else None,
                 'exitStatus': int(columns[1]) if re.fullmatch(r'-?\d+', columns[1]) else None,
             }
     jobs = {}
-    for label in [*JOBS,WORKER]:
+    for label in [*JOBS,WORKER,AWAKE]:
         path = folder / (label + '.plist')
-        checked_existing(path, worker_spec(repo) if label==WORKER else spec(repo, label))
+        checked_existing(path, expected_spec(repo,label))
         jobs[label] = {'installed': path.exists(), **loaded.get(label, {'running': False, 'pid': None, 'exitStatus': None})}
     boot = run(['/usr/sbin/sysctl', '-n', 'kern.boottime'])
     found = re.search(rb'sec = (\d+),', boot.stdout)
@@ -163,12 +173,13 @@ def mcp_job(action,repo,folder):
 
 
 def worker_job(action,repo,folder):
-    path=folder/(WORKER+'.plist');expected=worker_spec(repo);checked_existing(path,expected)
-    if action=='install-worker':
-        for name in ['workflow.py','briefing.py','preparation.py']:
-            source=repo/'services/iris-core'/name
+    label=AWAKE if action in {'install-awake','remove-awake'} else WORKER
+    path=folder/(label+'.plist');expected=expected_spec(repo,label);checked_existing(path,expected)
+    if action in {'install-worker','install-awake'}:
+        sources=[repo/'tools/deployment/iris-awake.py'] if label==AWAKE else [repo/'services/iris-core'/n for n in ['workflow.py','briefing.py','preparation.py']]
+        for source in sources:
             if source.is_symlink() or not source.is_file() or source.stat().st_uid!=os.getuid():raise ValueError('app_integrity')
-        run(['/bin/launchctl','bootout',f'gui/{os.getuid()}/{WORKER}'])
+        run(['/bin/launchctl','bootout',f'gui/{os.getuid()}/{label}'])
         temporary=path.with_suffix('.tmp');fd=os.open(temporary,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
         try:
             with os.fdopen(fd,'wb') as handle:plistlib.dump(expected,handle)
@@ -176,14 +187,14 @@ def worker_job(action,repo,folder):
         finally:
             if temporary.exists():temporary.unlink()
         if run(['/bin/launchctl','bootstrap',f'gui/{os.getuid()}',str(path)]).returncode:raise ValueError('agent_registration_failed')
-    elif action=='remove-worker':
-        run(['/bin/launchctl','bootout',f'gui/{os.getuid()}/{WORKER}']);path.unlink(missing_ok=True)
+    elif action in {'remove-worker','remove-awake'}:
+        run(['/bin/launchctl','bootout',f'gui/{os.getuid()}/{label}']);path.unlink(missing_ok=True)
     else:raise ValueError('wrong_installation_target')
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=['status', 'install', 'remove', 'stop-connect', 'start-connect','stop-mcp','start-mcp','install-worker','remove-worker'])
+    parser.add_argument('action', choices=['status', 'install', 'remove', 'stop-connect', 'start-connect','stop-mcp','start-mcp','install-worker','remove-worker','install-awake','remove-awake'])
     parser.add_argument('--target', choices=['mac-mini', 'current-mac'], default='mac-mini',
                         help='Explicit fixed installation target; defaults to the existing Mini deployment.')
     args = parser.parse_args()
@@ -231,7 +242,7 @@ def main():
         connect_job(args.action, repo, folder)
     elif args.action in {'stop-mcp','start-mcp'}:
         mcp_job(args.action,repo,folder)
-    elif args.action in {'install-worker','remove-worker'}:
+    elif args.action in {'install-worker','remove-worker','install-awake','remove-awake'}:
         worker_job(args.action,repo,folder)
     print(json.dumps(status(repo, folder)))
 

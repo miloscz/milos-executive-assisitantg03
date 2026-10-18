@@ -20,7 +20,7 @@ Soukromé soubory a databáze v ignorovaném `.iris-runtime/` mají adresář 07
 
 ## Rozvrh a ověření
 
-Aktivní heartbeat běhy tohoto chatu připravují agendu Po–Pá v 18:00 a obnovují ji v 7:00 místního pražského času. Třetí tichý běh dokončuje pouze již čekající analýzu po MFA. Vyžadují zapnutý Mac, přihlášené macOS a dostupnou aplikaci Codex. Aida podle uživatelem předaného potvrzení uložila jednu odpovídající rutinu do hlavního chatu; první skutečné plánované doručení 19. října ještě čeká.
+Aktivní heartbeat běhy tohoto chatu připravují agendu Po–Pá v 18:00 a obnovují ji v 7:00 místního pražského času. Třetí tichý běh dokončuje pouze již čekající analýzu po MFA. Vyžadují zapnutý otevřený Mac na nabíječce, přihlášené macOS a dostupnou aplikaci Codex. Samostatný uživatelský proces brání nečinnému uspání pouze při AC; obrazovku lze zamknout. Aida podle uživatelem předaného potvrzení uložila jednu odpovídající rutinu do hlavního chatu; první skutečné plánované doručení 19. října ještě čeká.
 
 ```sh
 python3 -m unittest discover -s services/iris-core -p 'test_*.py'

@@ -60,3 +60,10 @@ Skutečné předání je dokončené až po Aidině odpovědi s aktuálním výs
 V tomto chatu jsou aktivní heartbeat automatizace `iris-ve-ern-p-prava` (18:00 Po–Pá), `iris-rann-aktualizace` (7:00 Po–Pá) a `iris-dokon-en-ekaj-c-p-pravy` (po 15 minutách mezi 7:00 a 21:45 Po–Pá, jen již čekající práce). Používají místní čas tohoto Macu; jeho časové pásmo je Europe/Prague. Nejde o systémové cron joby ani o další chaty. Jejich běh vyžaduje dostupnou aplikaci Codex a tento Mac. Samostatný worker je instalovaný uživatelský LaunchAgent bez rozvrhu a bez modelu.
 
 Miloš předal potvrzení hlavní Aidy: jedna uložená rutina bez duplicit, Po–Pá 7:00 a 18:00 Europe/Prague od 19. října, doručení do jejich hlavního chatu, pouze Iris Local, MFA až po novém lidském pokynu a hlas po zahájení hovoru člověkem. Aida také přislíbila doplnění opakované kontroly starých zdrojů. Jde o uživatelsky předané potvrzení konfigurace, nikoli důkaz již uskutečněného plánovaného doručení. První takový běh ještě čeká.
+
+
+## Dostupnost tohoto Macu
+
+Při dokončení instalace měl Mac nastavené nečinné uspání po jedné minutě. Samostatný uživatelský LaunchAgent `net.iris.awake-on-ac` proto kontroluje jen veřejný stav napájení a pouze při AC drží systémovou ochranu proti nečinnému uspání. Používá pevný caffeinate -i, bez udržování displeje, odemykání obrazovky, změny systémových nastavení či přihlašování. Při přechodu na baterii ochranu do 30 sekund uvolní; při ukončení nebo pádu procesu ji ukončí vazba na PID. Neobchází zavření víka, ruční uspání, odhlášení nebo FileVault po restartu. Pro místní ranní provoz ponechat Mac na nabíječce, otevřený a přihlášený, s dostupným Codexem; zamčení je v pořádku.
+
+Spravuje se pouze `tools/deployment/mac-mini-startup.py --target current-mac install-awake` nebo `remove-awake`; bez sudo a bez tajných údajů. Testy ověřují zapnutí jen při AC, uvolnění na baterii, neznámý stav napájení a pevný program bez displejových či odemykacích voleb. Při prvním živém ověření služba detekovala baterii a správně neměla aktivní caffeinate. Zapnutí při skutečném AC se dokládá samostatně; běžící služba sama nedokazuje aktivní ochranu.
