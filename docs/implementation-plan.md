@@ -255,3 +255,8 @@ Večerní příprava 18:00 a ranní obnova 7:00 Po–Pá jsou uložené aktivní
 0.7.7 opravuje dokumentovaný unsupportedKeyList (pilot odstraní jen odmítnuté aliasy oid/bid) a převod RichText.Block uu5String/uu5string polí. Po lidském obnovení souhlasů a MFA prošel pilot i běžná dávka; kontrolní Meetings AI records tool vrátil skutečnou přípravu. Dočasná diagnostická výjimka je vyčerpaná a export odstraněný. Prošlo 68 nativních syntetických testů.
 
 Aktuální pondělní briefing byl znovu obsahově posouzený a publikovaný: 14 karet, pět analýz, sedm ověřených citací, current/partial. Skutečné místní i cloudové MCP čtení uspělo. Neúplný vložený obsah a přílohy zůstávají označené; další kvalita těchto převodů je navazující práce. První plánované doručení hlavní Aidou a hlas ještě nemají provozní důkaz. Podrobné výsledky jsou v iris-connect-read-verification.md; k dokončené opravě už není potřeba další nativní nasazení nebo místní souhlas.
+
+
+## Uživatelsky potvrzený hlasový průchod – 18. října večer
+
+Miloš v tomto chatu přímo potvrdil: „Vyzkoušel jsem to, pobavil jsem se o zítřejších schůzkách.“ Hlasový rozhovor s Aidou nad zítřejší agendou je tím uživatelsky potvrzený. Není to samostatný rozbor správnosti všech vět, důkaz trvalého uložení rozhodnutí do Iris ani důkaz plánovaného ranního doručení. To dál ověřuje první ranní provozní test 19. října.

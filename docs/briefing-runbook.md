@@ -91,3 +91,8 @@ Kritéria posuzovat odděleně:
 Předběžná kontrola večer 18. října: všechny čtyři místní služby běží, tunel ready, skutečný Iris Local status enabled=true, sessionValid=true, busy=false, backgroundLoginEnabled=true, credentialEntryRequired=false, phase=authenticated, workPending=false. Mac je na AC a vlastní caffeinate drží PreventUserIdleSystemSleep. Synteticky prošlo devět testů workflow a devět MCP control testů včetně čekání bez startu a odmítnutí neplatných vstupů. Živá relace se kvůli testu nerušila, MFA nebylo vyvolané. Mac má pro ráno zůstat otevřený, zapnutý, na napájení a přihlášený s dostupným Codexem; obrazovka může být zamčená. Plánovaná úloha i oprávnění musejí skutečně uspět při bezobslužném běhu, což předběžná kontrola sama nedokazuje.
 
 Oficiální podklady: [plánované úlohy](https://learn.chatgpt.com/docs/automations) rozlišují uložený rozvrh a kontrolu prvních běhů a požadují zapnutý počítač/aplikaci pro místní práci. [Úkoly a paměť dotu](https://learn.chatgpt.com/docs/dots/tasks-and-memory) výslovně rozlišují dokončený běh a skutečně dosažený či doručený výsledek.
+
+
+## Uživatelsky potvrzený hlasový průchod – 18. října večer
+
+Miloš v tomto chatu přímo potvrdil: „Vyzkoušel jsem to, pobavil jsem se o zítřejších schůzkách.“ Hlasový rozhovor s Aidou nad zítřejší agendou je tím uživatelsky potvrzený. Není to samostatný rozbor správnosti všech vět, důkaz trvalého uložení rozhodnutí do Iris ani důkaz plánovaného ranního doručení. To dál ověřuje první ranní provozní test 19. října.
