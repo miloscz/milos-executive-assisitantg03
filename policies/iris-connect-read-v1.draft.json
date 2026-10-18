@@ -1,0 +1,167 @@
+{
+  "policyId": "iris-connect-read-v1",
+  "version": 1,
+  "status": "pendingApproval",
+  "enabled": false,
+  "kind": "designSpecificationNotRuntimeConfiguration",
+  "createdOn": "2026-10-18",
+  "scope": {
+    "machine": "currentMacOnly",
+    "subject": "validatedSignedInSelf",
+    "remoteWritesAllowed": false,
+    "localClient": "nativePairedIrisServiceWithPeerIdentityVerification",
+    "networkListenerAllowed": false,
+    "arbitraryUrlAllowed": false,
+    "rawCommandApiAllowed": false,
+    "rawResponseExportAllowed": false,
+    "credentialOrTokenExportAllowed": false,
+    "periodicSyncEnabled": false
+  },
+  "targets": {
+    "people": {
+      "baseUri": "https://uuapp.plus4u.net/uu-plus4upeople-maing01/56ac93ddb0034de8b8e4f4b829ff7d0f"
+    },
+    "ownDw": {
+      "binding": "nativeConfirmedPinnedSelfWorkspace",
+      "sourceField": "mtDwBaseUri",
+      "requireUnambiguousSelfIdentityMatch": true,
+      "scheme": "https",
+      "host": "uuapp.plus4u.net",
+      "metamodel": "uu-myterritory-dwg01",
+      "requireContractValidWorkspaceIdentifier": true,
+      "forbiddenUriParts": ["userinfo", "explicitPort", "query", "fragment"],
+      "agentMayProvideBaseUri": false,
+      "automaticRebindingAllowed": false,
+      "accountChangeInvalidatesBindingAndCache": true,
+      "hostOrMetamodelChangeRequiresPolicyApproval": true
+    }
+  },
+  "operations": [
+    {
+      "id": "profile.resolveOwnWorkspace",
+      "agentExposed": false,
+      "method": "GET",
+      "target": "people",
+      "command": "people/findPerson",
+      "dtoKeys": ["uuIdentity"],
+      "uuIdentitySource": "validatedSessionInternalOnly",
+      "evidence": "documentation",
+      "runtimeGate": "selfBindingContractVerified"
+    },
+    {
+      "id": "calendar.list",
+      "agentExposed": true,
+      "agentParameterKeys": ["dateFrom", "dateTo", "fresh"],
+      "method": "GET",
+      "target": "ownDw",
+      "command": "uuDwRecord/listMyDiaryRecords",
+      "dtoKeys": ["dateFrom", "dateTo", "pageInfo"],
+      "dateWindow": {
+        "timezone": "Europe/Prague",
+        "defaultFromDaysRelativeToToday": -7,
+        "defaultToDaysRelativeToToday": 30,
+        "maxCalendarDays": 93,
+        "boundaryAndOverlapSemanticsMustBeVerified": true
+      },
+      "includePersonalAndAllDayBlocks": true,
+      "evidence": "documentationAndLegacyAdapter",
+      "runtimeGate": "diaryContractPaginationAndTimeBoundariesVerified"
+    },
+    {
+      "id": "tasks.listActive",
+      "agentExposed": true,
+      "agentParameterKeys": ["fresh"],
+      "method": "GET",
+      "target": "ownDw",
+      "command": "uuDwRecord/listActiveRecords",
+      "dtoKeys": ["pageInfo", "sorterList"],
+      "fixedSorterList": [{"key": "startTime", "ascending": false}],
+      "dateFilterAllowed": false,
+      "otherFiltersAllowed": false,
+      "evidence": "documentationAndLegacyAdapter",
+      "runtimeGate": "activeContractSortingPaginationAndUndatedRecordsVerified"
+    },
+    {
+      "id": "tasks.listFinal",
+      "agentExposed": true,
+      "agentParameterKeys": ["dateFrom", "dateTo", "fresh"],
+      "method": "GET",
+      "target": "ownDw",
+      "command": "uuDwRecord/listFinalRecords",
+      "candidateDtoKeys": ["dateFrom", "dateTo", "pageInfo"],
+      "dateWindow": {
+        "timezone": "Europe/Prague",
+        "defaultLookbackDays": 30,
+        "maxCalendarDays": 93,
+        "filterMeaningMustBeVerified": true
+      },
+      "evidence": "legacyAdapterOnly",
+      "runtimeGate": "finalMethodDtoPaginationDateMeaningAndStatesVerified",
+      "blockedFromRoutineUseUntilGatePasses": true
+    }
+  ],
+  "validation": {
+    "rejectUnknownParameters": true,
+    "agentControlsPagination": false,
+    "allowRedirects": false,
+    "allowCommandAliasesOrFallbacks": false,
+    "authorizationFailureMayBroadenScope": false,
+    "sourceLinksMayTriggerFetch": false,
+    "responseTextMayAlterPolicy": false,
+    "unknownSchemaFailsClosed": true
+  },
+  "limits": {
+    "pageIndexStart": 0,
+    "pageSize": 200,
+    "maxPagesPerOperation": 50,
+    "maxRecordsPerOperation": 10000,
+    "maxConcurrentRequests": 2,
+    "maxRequestAttemptsPerMinute": 30,
+    "burstRequests": 4,
+    "requestTimeoutSeconds": 20,
+    "operationTimeoutSeconds": 180,
+    "maxDecodedResponseBytes": 4194304,
+    "maxDecodedBytesPerOperation": 52428800,
+    "maxDescriptionBytes": 32768,
+    "maxRetriesAfterInitialAttempt": 2,
+    "retryNetworkFailures": true,
+    "retryHttpStatuses": [429, 502, 503, 504],
+    "honorRetryAfterWithinOperationDeadline": true,
+    "calendarCacheTtlSeconds": 60,
+    "tasksCacheTtlSeconds": 120
+  },
+  "resultRequirements": {
+    "normalizedFieldsOnly": true,
+    "requiredMetadata": ["fetchedAt", "scope", "dateWindow", "complete", "consistency", "counts", "stale", "incompleteReason"],
+    "dateWindowForUnboundedActiveRecords": null,
+    "withoutServerSnapshotConsistency": "bestEffort",
+    "descriptionTruncationFlag": "contentTruncated",
+    "limitsOrUnstablePagesSetCompleteFalse": true,
+    "absenceMeansCompletion": false,
+    "completionRequiresMatchingOwnElementaryState": true,
+    "unknownStatesRemainUnknown": true,
+    "incompleteOrStaleCalendarProvesAvailability": false,
+    "missingParticipantsProveSoloReservation": false,
+    "newInboxItemsAutomaticallyCreated": false
+  },
+  "authentication": {
+    "nativeExistingAuthFlowOnly": true,
+    "loginRequiredOnMissingOrExpiredSession": true,
+    "automaticMfaRetryAllowed": false,
+    "firstPilotLoginStartedByHumanInNativeApp": true
+  },
+  "audit": {
+    "allowedFields": ["operationId", "timestamp", "counts", "durationMs", "fixedStatusCode"],
+    "businessTextInLogsAllowed": false,
+    "rawPayloadOrAuthDataInLogsAllowed": false
+  },
+  "activation": {
+    "humanApprovalOfExactVersionAndFileHashRequired": true,
+    "repositoryEditAloneActivatesPolicy": false,
+    "agentMayApproveOrModifyActivePolicy": false,
+    "limitedNativeContractPilotAllowedOnlyAfterApproval": true,
+    "contractPilotExportsOnlyFixedChecksAndCounts": true,
+    "eachRuntimeGateMustPassBeforeRoutineUse": true,
+    "broaderCommandTargetOrDtoRequiresNewApproval": true
+  }
+}

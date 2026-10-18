@@ -1,0 +1,15 @@
+(version 1)
+(allow default)
+; Neither MCP server nor its native helper can create an Internet connection.
+(deny network*)
+(allow network-outbound (literal (param "AUTH_SOCKET")))
+; No reads or writes in the user home except code and the one local socket.
+(deny file-read* file-write* (subpath (param "USER_HOME")))
+(allow file-read* (subpath (param "SERVICE_ROOT")))
+(allow file-read* (subpath (param "APP_BUNDLE")))
+(allow file-read-metadata (subpath (param "USER_HOME")))
+(allow file-read* file-write* (literal (param "AUTH_SOCKET")))
+(allow file-read-metadata (literal (param "AUTH_DIRECTORY")))
+; Only the bundled signed helper may be launched. No shell or other programs.
+(deny process-exec)
+(allow process-exec (literal (param "NODE_BINARY")) (literal (param "HELPER")))

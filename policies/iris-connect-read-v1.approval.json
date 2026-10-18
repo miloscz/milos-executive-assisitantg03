@@ -1,0 +1,10 @@
+{
+  "policyId": "iris-connect-read-v1",
+  "version": 1,
+  "specification": "iris-connect-read-v1.draft.json",
+  "sha256": "6cf1ff32ab677fb78d5a7e840eb324b21bb237027e9a914f2bbb75bc4f6ef0db",
+  "approvedOn": "2026-10-18",
+  "source": "Explicit human approval in this project conversation",
+  "approvalText": "Schvaluji tuto sadu commandů a omezení. Pojďme rozhraní implementovat a ověřit čtení úkolů a kalendáře na tomto Macu.",
+  "scope": "Implementation and bounded native contract pilot; each routine operation remains gated by its verification results."
+}

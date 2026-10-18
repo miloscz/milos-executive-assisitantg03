@@ -1,0 +1,25 @@
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { outputSchema } from './native-control.mjs';
+
+export function sanitizeMessage(message) {
+  if (message.error) {
+    const codes = new Set([-32700, -32600, -32601, -32602, -32603]);
+    const code = codes.has(message.error.code) ? message.error.code : -32603;
+    return { jsonrpc: '2.0', id: message.id ?? null, error: { code, message: 'MCP request rejected' } };
+  }
+  if (message.result?.isError || message.result?.structuredContent) {
+    let value;
+    try { value = outputSchema.parse(message.result.structuredContent); }
+    catch { value = { ok: false, error: 'invalidRequest' }; }
+    return { jsonrpc: '2.0', id: message.id, result: {
+      isError: !value.ok, structuredContent: value, content: [{ type: 'text', text: JSON.stringify(value) }]
+    } };
+  }
+  return message;
+}
+export function safeStdio() {
+  const transport = new StdioServerTransport(process.stdin, process.stdout, { maxBufferSize: 32768 });
+  const send = transport.send.bind(transport);
+  transport.send = message => send(sanitizeMessage(message));
+  return transport;
+}

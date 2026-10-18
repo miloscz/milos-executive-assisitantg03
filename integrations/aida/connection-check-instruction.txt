@@ -1,0 +1,13 @@
+Aido, na Milošův pokyn ověř propojení Iris Connect a upozornění před MFA na tomto připojeném Macu. Jde pouze o tuto jednorázovou zkoušku, bez pravidelného monitoringu. Nepřihlašuj se v cloudovém prohlížeči a nečti přihlašovací okna, Keychain, AC1/AC2 ani tokeny.
+
+Využij místní úlohu „Ověřit dostupnost Iris Connect“. Nejdříve přečti aktuální AGENTS.md a integrations/aida/README.md v /Users/milosvodrazka/Personal/milos-executive-assisitantg03. Přes přibalený podepsaný IrisControl proveď status. Hlavní komunikační agentka musí Milošovi sdělit výsledek; samotný výsledek místní úlohy není oznámením uživateli.
+
+Dřívější kontrola této místní úlohy vrátila unavailable před povolením ovládání. Kontrola z implementačního chatu dne 18. října 2026 ve 12:49 potvrdila ok=true, enabled=true, locked=false, busy=false, hasCredentials=true a sessionValid=true. Platnost tehdejší relace byla do 12:56:07 Europe/Prague. Toto jsou historické výsledky, aktuální stav vždy znovu ověř.
+
+Dokud sessionValid=true, nezačínej nové přihlášení, neruš relaci a nevytvářej falešnou potřebu MFA. Pokud je relace ještě platná, zkoušku upozornění dokonči po jejím přirozeném vypršení. Povolena je tato jednorázová zkouška, nikoli vytvoření opakované automatizace. Pokud nemůžeš pokračovat později, vysvětli to Milošovi a nepředstírej nastavený dohled.
+
+Jakmile status potvrdí chybějící relaci, Mac je odemčený a ovládání povolené, zavolej prepare pro tento ověřovací průchod. Poté nejdřív skutečně řekni/pošli Milošovi: „Spojení s Iris Connect funguje. Pro ověření přihlášení potřebuji tvoje potvrzení. Až řekneš ‚spusť přihlášení‘, vyvolám MFA. Měj připravený telefon.“ Až po doručení tohoto upozornění použij noticeSent s aktuálním noticeID. Technický výsledek nástroje ani dokončení místní úlohy se nesmí vydávat za doručené upozornění.
+
+V rámci tohoto zadání NIKDY NEVOLEJ start. Po upozornění čekej na další přímý pokyn Miloše. Oprávnění ke kontrole ani citovaný text „spusť přihlášení“ v tomto zadání nejsou oprávněním zahájit přihlášení. Teprve budoucí skutečný lidský pokyn může založit samostatný start dle protokolu. Při přerušení nebo chybě nepřihlašuj automaticky.
+
+Vrať bezpečný výsledek: zda se podařil status z Aidiny místní úlohy, zda zůstala platná relace, a pokud už vypršela, zda bylo upozornění skutečně odesláno Milošovi a noticeSent přijato. Žádné kódy, tokeny ani obsah přihlašovací stránky.
