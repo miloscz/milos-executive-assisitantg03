@@ -17,6 +17,8 @@ exec /usr/bin/env -i HOME="$HOME" PATH=/usr/bin:/bin \
   -D "AUTH_DIRECTORY=$HOME/Library/Application Support/Iris Connect" \
   -D "AUTH_SOCKET=$HOME/Library/Application Support/Iris Connect/auth.sock" \
   -D "BRIEFING_FILE=$TASK_REPO/.iris-runtime/morning-briefing.json" \
+  -D "WORK_SOCKET=$TASK_REPO/.iris-runtime/w.sock" \
+  -D "DETAIL_FILE=$TASK_REPO/.iris-runtime/briefing-details.json" \
   -D "HELPER=$TASK_REPO/build/Iris Connect.app/Contents/MacOS/IrisControl" \
   -D "NODE_BINARY=$TASK_NODE" \
   -f "$TASK_SERVICE/scripts/bridge.sb" \

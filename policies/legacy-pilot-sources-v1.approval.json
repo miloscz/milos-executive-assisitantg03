@@ -1,0 +1,17 @@
+{
+  "policyId": "legacy-pilot-sources-v1",
+  "specification": "legacy-pilot-sources-v1.draft.json",
+  "sha256": "c86d60381efc6ea9fb0f415c841e590185c79dd4d0eba822f0abe1024da96948",
+  "approvedOn": "2026-10-18",
+  "source": "Explicit human instruction in this project conversation",
+  "approvalText": "Pojďme implementovat bezpečné soukromé úložiště a napojit pracovní evidenci na schválená data Iris Connect. Pak spusťme navržený pilot nad nahráváním schůzek, původní Iris zatím nechme beze změny.",
+  "scope": "Read-only shadow pilot on the current Mac; exactly three legacy notes and the existing approved native read policies. No old Iris changes, +4U writes, authentication-data access or Aida tool changes.",
+  "explicitNativeChecks": {
+    "operations": [
+      "diagnostics.calendarBoundaries",
+      "diagnostics.sources"
+    ],
+    "approvalText": "Schvaluji obě čtecí kontroly",
+    "scope": "This live read-only pilot, fixed native calendar-boundary and approved-source contract checks; no new uuCommands, target types, credentials, writes or warning-name export."
+  }
+}

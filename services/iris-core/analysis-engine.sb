@@ -1,0 +1,13 @@
+(version 1)
+(allow default)
+; CLI authentication is handled internally by Codex. The model gets no auth
+; values, tools, plugins or filesystem input; only normalized text over stdin.
+(deny file-read* file-write* (subpath (param "USER_HOME")))
+(allow file-read* file-write* (subpath (param "CODEX_HOME_PATH")))
+(allow file-read* (literal (param "CODEX_BINARY")))
+(allow file-read-metadata (subpath (param "USER_HOME")))
+; No shell, IrisRead, IrisControl, Keychain CLI or arbitrary subprocess.
+(deny process-exec)
+(allow process-exec (literal (param "CODEX_BINARY")))
+; No native UNIX socket: this runner never reads +4U or changes auth state.
+(deny network-outbound (subpath (param "USER_HOME")))

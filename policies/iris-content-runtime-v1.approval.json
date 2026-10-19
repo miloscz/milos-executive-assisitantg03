@@ -1,0 +1,8 @@
+{
+  "policy": "iris-content-runtime-v1",
+  "approved": true,
+  "sha256": "5455776a1ce06285a45e753327b1912665321b4ca5009384f6d982c95fc84ea8",
+  "basis": "humanDirect",
+  "approvedAt": "2026-10-19T18:13:56.735979+00:00",
+  "scope": "Exact v1 data/destination contract approved by the user in this chat; model gpt-5.6-sol. No approval of a different model is inferred from the accompanying question."
+}

@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-18T20:14:43.090609+00:00",
+  "scope": "fixed_legacy_business_vault_aggregate_only",
+  "areas": [
+    {
+      "area": "01-strategy",
+      "files": 27,
+      "extensions": {
+        ".md": 9,
+        ".xlsx": 1,
+        ".json": 7,
+        ".csv": 10
+      },
+      "markdown": 9,
+      "frontmatter": 7,
+      "updatedDate": 6,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "04-production",
+      "files": 11,
+      "extensions": {
+        ".md": 11
+      },
+      "markdown": 11,
+      "frontmatter": 11,
+      "updatedDate": 11,
+      "sourceField": 6,
+      "stubTrue": 0
+    },
+    {
+      "area": "06-management",
+      "files": 18,
+      "extensions": {
+        ".md": 3,
+        ".docx": 1,
+        ".m4a": 12,
+        ".txt": 1,
+        ".html": 1
+      },
+      "markdown": 3,
+      "frontmatter": 3,
+      "updatedDate": 3,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "_templates",
+      "files": 8,
+      "extensions": {
+        ".md": 8
+      },
+      "markdown": 8,
+      "frontmatter": 8,
+      "updatedDate": 0,
+      "sourceField": 2,
+      "stubTrue": 0
+    },
+    {
+      "area": "decisions",
+      "files": 22,
+      "extensions": {
+        ".md": 22
+      },
+      "markdown": 22,
+      "frontmatter": 21,
+      "updatedDate": 21,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "journal",
+      "files": 101,
+      "extensions": {
+        ".md": 34,
+        ".mp3": 34,
+        ".txt": 33
+      },
+      "markdown": 34,
+      "frontmatter": 34,
+      "updatedDate": 34,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "me",
+      "files": 2,
+      "extensions": {
+        ".md": 2
+      },
+      "markdown": 2,
+      "frontmatter": 2,
+      "updatedDate": 2,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "meetings",
+      "files": 279,
+      "extensions": {
+        ".md": 279
+      },
+      "markdown": 279,
+      "frontmatter": 276,
+      "updatedDate": 258,
+      "sourceField": 276,
+      "stubTrue": 140
+    },
+    {
+      "area": "messages",
+      "files": 564,
+      "extensions": {
+        ".md": 564
+      },
+      "markdown": 564,
+      "frontmatter": 564,
+      "updatedDate": 564,
+      "sourceField": 564,
+      "stubTrue": 0
+    },
+    {
+      "area": "orgs",
+      "files": 11,
+      "extensions": {
+        ".md": 11
+      },
+      "markdown": 11,
+      "frontmatter": 11,
+      "updatedDate": 11,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "people",
+      "files": 123,
+      "extensions": {
+        ".md": 123
+      },
+      "markdown": 123,
+      "frontmatter": 123,
+      "updatedDate": 123,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "product",
+      "files": 1,
+      "extensions": {
+        ".md": 1
+      },
+      "markdown": 0,
+      "frontmatter": 0,
+      "updatedDate": 0,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "products",
+      "files": 5,
+      "extensions": {
+        ".md": 5
+      },
+      "markdown": 5,
+      "frontmatter": 5,
+      "updatedDate": 5,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "projects",
+      "files": 40,
+      "extensions": {
+        ".md": 40
+      },
+      "markdown": 40,
+      "frontmatter": 23,
+      "updatedDate": 23,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "reports",
+      "files": 31,
+      "extensions": {
+        ".md": 22,
+        ".txt": 9
+      },
+      "markdown": 22,
+      "frontmatter": 10,
+      "updatedDate": 10,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "tasks",
+      "files": 8,
+      "extensions": {
+        ".md": 8
+      },
+      "markdown": 8,
+      "frontmatter": 7,
+      "updatedDate": 7,
+      "sourceField": 0,
+      "stubTrue": 0
+    },
+    {
+      "area": "topics",
+      "files": 13,
+      "extensions": {
+        ".md": 13
+      },
+      "markdown": 13,
+      "frontmatter": 13,
+      "updatedDate": 13,
+      "sourceField": 0,
+      "stubTrue": 0
+    }
+  ],
+  "taskLists": [
+    {
+      "name": "inbox",
+      "open": 1735,
+      "checked": 2,
+      "bySource": {
+        "plus4u_url": 386,
+        "other_or_missing_source": 146,
+        "signal": 1203
+      },
+      "withDue": 466,
+      "withOwner": 171
+    },
+    {
+      "name": "next-actions",
+      "open": 31,
+      "checked": 0,
+      "bySource": {
+        "other_or_missing_source": 23,
+        "plus4u_url": 6,
+        "signal": 2
+      },
+      "withDue": 29,
+      "withOwner": 0
+    },
+    {
+      "name": "waiting-for",
+      "open": 44,
+      "checked": 0,
+      "bySource": {
+        "plus4u_url": 42,
+        "other_or_missing_source": 2
+      },
+      "withDue": 0,
+      "withOwner": 43
+    },
+    {
+      "name": "week",
+      "open": 17,
+      "checked": 0,
+      "bySource": {
+        "other_or_missing_source": 16,
+        "plus4u_url": 1
+      },
+      "withDue": 13,
+      "withOwner": 0
+    },
+    {
+      "name": "someday",
+      "open": 0,
+      "checked": 0,
+      "bySource": {},
+      "withDue": 0,
+      "withOwner": 0
+    },
+    {
+      "name": "done-log",
+      "open": 0,
+      "checked": 65,
+      "bySource": {},
+      "withDue": 0,
+      "withOwner": 0
+    },
+    {
+      "name": "recurring",
+      "open": 0,
+      "checked": 0,
+      "bySource": {},
+      "withDue": 0,
+      "withOwner": 0
+    },
+    {
+      "name": "key-tasks",
+      "open": 0,
+      "checked": 0,
+      "bySource": {},
+      "withDue": 0,
+      "withOwner": 0
+    }
+  ]
+}

@@ -176,7 +176,7 @@ def worker_job(action,repo,folder):
     label=AWAKE if action in {'install-awake','remove-awake'} else WORKER
     path=folder/(label+'.plist');expected=expected_spec(repo,label);checked_existing(path,expected)
     if action in {'install-worker','install-awake'}:
-        sources=[repo/'tools/deployment/iris-awake.py'] if label==AWAKE else [repo/'services/iris-core'/n for n in ['workflow.py','briefing.py','preparation.py']]
+        sources=[repo/'tools/deployment/iris-awake.py'] if label==AWAKE else [repo/'services/iris-core'/n for n in ['workflow.py','briefing.py','preparation.py','work_requests.py','work_bridge.py','evidence.py','private_store.py','analysis_engine.py','analysis-engine.sb']]
         for source in sources:
             if source.is_symlink() or not source.is_file() or source.stat().st_uid!=os.getuid():raise ValueError('app_integrity')
         run(['/bin/launchctl','bootout',f'gui/{os.getuid()}/{label}'])

@@ -13,6 +13,7 @@ struct AgendaResult: Codable {
     let incompleteReason: ReadFailure?
     let contractVerified: Bool
     let records: [NormalizedRecord]
+    let bindingRef: String?
     struct Counts: Codable { let records: Int; let pages: Int }
 }
 
@@ -67,6 +68,18 @@ final class ReadEngine: ObservableObject {
     private var cache: [String: AgendaResult] = [:]
     private var flights: [String: Task<AgendaResult, Never>] = [:]
     private var calendarVerified = false
+    // Snapshot only public prior binding metadata, not an old login or consent.
+    // New code still requires its own local pairing before exporting anything.
+    private let previousBindingRef: String? = {
+        guard let data = UserDefaults.standard.data(forKey: "readBindingApprovalV1"),
+              let old = try? JSONDecoder().decode(ReadBindingApproval.self, from: data), old.version == 1 else { return nil }
+        return try? ReadBindingReference.make(identityHash: old.identityHash, workspace: old.workspace)
+    }()
+
+    private func bindingReference() throws -> String {
+        guard paired, let bound, let auth, auth.expiresAt > Date(), specificationValid else { throw ReadFailure.bindingRequired }
+        return try ReadBindingReference.make(identity: auth.identity, workspace: bound.absoluteString)
+    }
     private var checkingBoundaries = false
     private var specificationValid: Bool {
         guard let url = Bundle.main.url(forResource: "iris-connect-read-v1", withExtension: "json"),
@@ -245,7 +258,8 @@ final class ReadEngine: ObservableObject {
         }
         return AgendaResult(operation: operation.rawValue, fetchedAt: Date(), scope: "self", dateWindow: window,
             complete: failure == nil, consistency: "bestEffort", counts: .init(records: records.count, pages: accumulated.pages),
-            stale: false, incompleteReason: failure, contractVerified: contractVerified, records: records)
+            stale: false, incompleteReason: failure, contractVerified: contractVerified, records: records,
+            bindingRef: try? bindingReference())
     }
 
     /// Fixed read-only calibration. Only counts/booleans leave this diagnostic;
@@ -347,7 +361,9 @@ final class ReadEngine: ObservableObject {
             let request = try ReadRequest.parse(data)
             guard paired, auth?.expiresAt ?? .distantPast > Date() else { throw ReadFailure.loginRequired }
             if request.operation == "status" {
-                return encode(Status(ok: true, policy: ReadPolicy.id, paired: true, loginRequired: false, checks: checks))
+                let reference = try bindingReference()
+                return encode(Status(ok: true, policy: ReadPolicy.id, paired: true, loginRequired: false, checks: checks,
+                    bindingRef: reference, previousBindingRef: previousBindingRef == reference ? reference : nil))
             }
             if request.operation == "diagnostics.verifyReads" { return encode(await pilot()) }
             if request.operation == "diagnostics.calendarBoundaries" { return encode(try await verifyCalendarBoundaries()) }
@@ -367,6 +383,7 @@ final class ReadEngine: ObservableObject {
         let complete: Bool
         let checks: [SourceCheck]
         let materials: [SourceMaterial]
+        let bindingRef: String?
     }
 
     private func sourceBatch(pilot: Bool) async throws -> SourceBatch {
@@ -455,7 +472,9 @@ final class ReadEngine: ObservableObject {
             }
             sourceChecks = checks; complete = checks.allSatisfy(\.verified)
         }
-        return SourceBatch(ok: true, policy: SourcePolicy.id, fetchedAt: Date(), complete: complete, checks: checks, materials: pilot ? [] : materials)
+        guard epoch == generation else { throw ReadFailure.cancelled }
+        return SourceBatch(ok: true, policy: SourcePolicy.id, fetchedAt: Date(), complete: complete, checks: checks,
+            materials: pilot ? [] : materials, bindingRef: pilot ? nil : try bindingReference())
     }
 
     private func encode<T: Encodable>(_ value: T) -> Data {
@@ -464,7 +483,7 @@ final class ReadEngine: ObservableObject {
     }
 
     private func writeReceipt() {
-        let receipt = Status(ok: true, policy: ReadPolicy.id, paired: paired,
+        let receipt = Receipt(ok: true, policy: ReadPolicy.id, paired: paired,
                              loginRequired: auth?.expiresAt ?? .distantPast <= Date(), checks: checks)
         try? FileManager.default.createDirectory(at: LocalIPC.directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         let path = LocalIPC.directory.appendingPathComponent("read-verification.json")
@@ -473,7 +492,11 @@ final class ReadEngine: ObservableObject {
     }
 
     private struct ErrorResult: Encodable { let ok: Bool; let error: ReadFailure }
+    private struct Receipt: Encodable {
+        let ok: Bool; let policy: String; let paired: Bool; let loginRequired: Bool; let checks: [ReadCheck]
+    }
     private struct Status: Encodable {
         let ok: Bool; let policy: String; let paired: Bool; let loginRequired: Bool; let checks: [ReadCheck]
+        let bindingRef: String; let previousBindingRef: String?
     }
 }

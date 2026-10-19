@@ -1,0 +1,9 @@
+{
+  "policy": "iris-content-runtime-v2",
+  "approved": true,
+  "sha256": "55c7ee2fcc111b03179c0d5fe01a0dcf6b376b3439be6c36371ccac1b66ddc7b",
+  "basis": "humanDirect",
+  "approvedAt": "2026-10-19T18:22:54.458221+00:00",
+  "scope": "Direct user instruction in this chat to resolve local CLI availability and switch Iris to gpt-6.1-sol with high reasoning. Data, destination and limits remain the approved v1 scope; only model and explicit reasoning change.",
+  "supersedesModelContract": "iris-content-runtime-v1"
+}

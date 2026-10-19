@@ -1,6 +1,8 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { outputSchema } from './native-control.mjs';
 import {briefingOutputSchema} from './briefing.mjs';
+import {detailOutputSchema} from './preparation-detail.mjs';
+import {workOutput} from './work-requests.mjs';
 
 export function sanitizeMessage(message) {
   if (message.error) {
@@ -10,7 +12,11 @@ export function sanitizeMessage(message) {
   }
   if (message.result?.isError || message.result?.structuredContent) {
     let value;
-    try { value = message.result.structuredContent?.briefing || ['briefingUnavailable','briefingNotPrepared'].includes(message.result.structuredContent?.error)
+    try { value = message.result.structuredContent?.workRequest || ['versionChanged','stalePreparation','notPrepared','requestConflict','confirmationExpired','confirmationRequired','notFound','queueFull','workUnavailable'].includes(message.result.structuredContent?.error)
+      ? workOutput.parse(message.result.structuredContent)
+      : message.result.structuredContent?.detail || ['detailUnavailable','detailNotPrepared'].includes(message.result.structuredContent?.error)
+      ? detailOutputSchema.parse(message.result.structuredContent)
+      : message.result.structuredContent?.briefing || ['briefingUnavailable','briefingNotPrepared'].includes(message.result.structuredContent?.error)
       ? briefingOutputSchema.parse(message.result.structuredContent) : outputSchema.parse(message.result.structuredContent); }
     catch { value = { ok: false, error: 'invalidRequest' }; }
     return { jsonrpc: '2.0', id: message.id, result: {

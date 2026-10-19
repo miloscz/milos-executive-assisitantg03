@@ -1,0 +1,30 @@
+{
+  "policy": "iris-content-runtime-v1",
+  "purpose": "Bounded content completion of an admitted morning/evening batch after approved source reads and human MFA",
+  "destination": "OpenAI model inference through the locally authenticated official Codex CLI",
+  "model": "gpt-5.6-sol",
+  "input": {
+    "type": "Normalized analysis_input of the same briefing packet",
+    "maximumCharacters": 131072,
+    "maximumItems": 14,
+    "maximumSourceExcerptCharactersTotal": 90000,
+    "fields": ["date", "packetHash", "item id/kind/title/description", "sourceURL/pageId", "approved source excerpts and completeness flags", "prepared knowledge context", "received decisions"],
+    "classification": "May contain internal business information from approved meeting and task documents",
+    "excluded": ["AC1", "AC2", "+4U tokens", "cookies", "authentication headers", "Keychain values", "attachments", "arbitrary project or user files"]
+  },
+  "execution": {
+    "tools": false,
+    "MCP": false,
+    "plugins": false,
+    "shell": false,
+    "directPlus4U": false,
+    "MFA": false,
+    "externalWritesOrMessages": false,
+    "deadlineSeconds": 240,
+    "normalAttemptsPerJobAndPacket": 1,
+    "additionalRecoveryAfterProcessCrash": 1,
+    "persistentModelSession": false,
+    "publication": "Only original hash, exact citation and freshness validators in workflow.publish_analysis"
+  },
+  "schedule": "Only admitted morning/evening batches; no periodic agent monitoring on the notebook"
+}

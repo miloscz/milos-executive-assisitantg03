@@ -1,0 +1,27 @@
+{
+  "id": "legacy-pilot-sources-v1",
+  "status": "draft_not_activated",
+  "purpose": "Read-only shadow pilot of work evidence, knowledge proposals and inbox admission",
+  "legacyRoot": "/Users/milosvodrazka/Personal/milos_executive_assistant",
+  "legacyRelativeFiles": [
+    "vault/messages/2026/10/2026-10-12-meetings-ai-records-mobile-app.md",
+    "vault/messages/2026/10/2026-10-12-uso-pilot-nahravani-schuzek.md",
+    "vault/decisions/2026-10-06-companion-local-transcription-models.md"
+  ],
+  "maxLegacyFileBytes": 65536,
+  "followSymlinks": false,
+  "followLinksInContent": false,
+  "nativeSource": {
+    "existingApprovedPoliciesOnly": true,
+    "calendarRecordId": "6accc2634ec86aeb2dbdcab0",
+    "workspace": "76cc9f8077b44b43b90c3542bd257b55",
+    "meetingArtifactId": "6accc261794626a48995763f",
+    "taskCandidateRecordId": "6ac68a3bcd45c209a371a53c",
+    "taskRelation": "unverified_do_not_merge"
+  },
+  "writeLegacy": false,
+  "writePlus4U": false,
+  "sendMessages": false,
+  "changeAidaTools": false,
+  "readAuthenticationData": false
+}

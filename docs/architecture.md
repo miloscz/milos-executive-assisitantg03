@@ -10,6 +10,8 @@ Systém proto plánuje zpětně od termínů, začne vlastní přípravu s před
 
 Úspěch se hodnotí podle včasného posunu důležitých závazků, připravenosti podkladů a ušetřené Milošovy práce. Počet poznámek, nalezených podnětů nebo spuštěných agentů není cílovou metrikou.
 
+**Místní realizace předávání práce — MCP 0.5.0:** [verziované dopracování a dvoufázové rozhodnutí](aida-work-handoff.md) používají samostatný přesný UNIX socket jádra, bez databáze nebo +4U přístupu Aidy. Rozhodnutí má snapshot podkladu, readback, nové potvrzení deklarované Aidou, expiraci a idempotenci. Recorded potvrzuje místní uložení, externalExecutionAuthorized=false neumožňuje externí provedení. Tento protokol neřeší kryptografický důkaz lidského původu. Skutečné dopracování prošlo, první lidské rozhodnutí se ještě ověřuje.
+
 ## Potvrzená produktová rozhodnutí
 
 | Oblast | Dohodnuté pravidlo |
@@ -222,3 +224,7 @@ Při prohlídce byl v úkolech nalezen výpis jedné stránky o 200 položkách 
 - [MCP Events](https://developers.openai.com/plugins/build/mcp-events)
 - [uuIdentity autentizační protokoly](https://uuapp.plus4u.net/uu-bookkit-maing01/ad1916b8190d46b1bd3bcde1f02a140a/book/page?code=71067309)
 - [Apple Keychain Services](https://developer.apple.com/documentation/security/keychain-services)
+
+### Místní dokončení ranní a večerní dávky po MFA
+
+Od 19. října má registrovaná ranní/večerní dávka vlastní ohraničený obsahový krok v pracovním workeru. Po lidském MFA přečte zdroje podepsaný IrisRead; samostatný CLI proces obdrží jen normalizovaný text. Pevný sandbox a vypnuté nástroje oddělují analýzu od nativního přihlášení a projektu. Modelové přihlášení používá interně CLI, žádné +4U tajemství se mu nepředává. Výsledek může zveřejnit pouze původní validující publisher jádra. Trvalá vazba job + packetHash brání duplicitám; při chybě se nepřipravuje nové MFA. Aida stále jen čte omezené MCP. Nejde o obnovu průběžného dohledu notebooku; zůstávají pouze ranní a večerní plánované dávky. [Provoz, izolace a důkazy](briefing-runbook.md#automatické-dokončení-dávky-po-mfa--19-října).
